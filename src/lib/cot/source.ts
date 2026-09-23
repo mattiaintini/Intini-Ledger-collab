@@ -38,6 +38,8 @@ export interface CotReport {
   markets: MarketReport[];
   sources: SourceStatus[];
   status: CheckStatus;
+  /** Mercati configurati per cui l'API non ha restituito dati: il report li omette e va in errore. */
+  missing: CotMarket[];
   summary: { weeksChecked: number; weeksFailed: number; crossChecked: number };
 }
 
@@ -76,14 +78,16 @@ async function fetchAnnual(year: number, noCache: boolean): Promise<string> {
   return strFromU8(files[name]);
 }
 
-export async function buildCotReport(opts: { noCache?: boolean; now?: Date } = {}): Promise<CotReport> {
+export async function buildCotReport(opts: { noCache?: boolean; now?: Date; markets?: CotMarket[] } = {}): Promise<CotReport> {
   const now = opts.now ?? new Date();
   const noCache = opts.noCache ?? false;
-  const codes = new Set(COT_MARKETS.map((m) => m.code));
+  const configured = opts.markets ?? COT_MARKETS;
+  const codes = new Set(configured.map((m) => m.code));
   const sources: SourceStatus[] = [];
 
   // Fonte primaria: senza di lei non c'è report.
-  const apiRows = await fetchSocrata(COT_MARKETS, HISTORY_WEEKS, noCache);
+  const apiRows = await fetchSocrata(configured, HISTORY_WEEKS, noCache);
+  if (apiRows.length === 0) throw new Error("L'API CFTC non ha restituito dati");
   sources.push({ id: "socrata", label: "API CFTC (Socrata, Legacy Futures Only)", url: SOCRATA_URL, ok: true, rows: apiRows.length });
 
   // Fonti di controllo: il file della settimana e gli archivi annuali che coprono lo storico.
@@ -121,12 +125,12 @@ export async function buildCotReport(opts: { noCache?: boolean; now?: Date } = {
   });
   if (contiguousFrom < years.length) coverageFrom = `${years[contiguousFrom]}-01-01`;
 
-  const markets: MarketReport[] = COT_MARKETS.map((market) => {
+  const missing = configured.filter((m) => !apiRows.some((r) => r.code === m.code));
+  const markets: MarketReport[] = configured.filter((m) => !missing.includes(m)).map((market) => {
     const history = apiRows
       .filter((r) => r.code === market.code)
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(-HISTORY_WEEKS);
-    if (history.length === 0) throw new Error(`Nessun dato CFTC per ${market.label} (${market.code})`);
     const raw = new Map(rawRows.filter((r) => r.code === market.code).map((r) => [r.date, r]));
     // Il controllo parte dalla prima settimana dello storico mostrato, non dall'archivio intero.
     const rawInWindow = new Map([...raw].filter(([d]) => d >= history[0].date));
@@ -146,7 +150,8 @@ export async function buildCotReport(opts: { noCache?: boolean; now?: Date } = {
     latestReport: markets.map((m) => m.analytics.date).sort().at(-1) ?? "",
     markets,
     sources,
-    status: statuses.includes("fail") ? "fail" : statuses.includes("warn") || sources.some((s) => !s.ok) ? "warn" : "pass",
+    missing,
+    status: statuses.includes("fail") || missing.length ? "fail" : statuses.includes("warn") || sources.some((s) => !s.ok) ? "warn" : "pass",
     summary: {
       weeksChecked: allWeeks.length,
       weeksFailed: allWeeks.filter((w) => w.status === "fail").length,

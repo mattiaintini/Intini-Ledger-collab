@@ -38,6 +38,9 @@ export default async function VerificationPage() {
 
       <Card>
         <CardTitle>Esito per mercato</CardTitle>
+        {report.missing.length > 0 && (
+          <p className="mb-4 text-sm text-neg">Nessun dato dall&apos;API CFTC per {report.missing.map((m) => `${m.label} (${m.code})`).join(", ")}.</p>
+        )}
         <div className="overflow-x-auto scrollbar-thin">
           <table className="w-full min-w-[720px] text-sm">
             <thead className="text-left text-xs text-muted">

@@ -18,6 +18,7 @@ export async function GET(request: Request) {
     status: report.status,
     latestReport: report.latestReport,
     summary: report.summary,
+    missing: report.missing.map((m) => m.key),
     sources: report.sources.map(({ id, ok, rows, error }) => ({ id, ok, rows, error })),
     freshness: report.markets.map((m) => ({ market: m.market.key, ...m.verification.freshness })),
     failures,

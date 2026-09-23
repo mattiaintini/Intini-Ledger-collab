@@ -6,3 +6,4 @@
 | 1 | G1 gate unico | gate 0, 40 test | `npm run gate` = tsc + eslint + vitest + next build |
 | 2 | G5 parser numeri italiano | gate 0, 60 test | parseNum in tutti i form, P&L suggerito e avvisi con la virgola |
 | 3 | G6 label/htmlFor | gate 0, 60 test | verifica a11y demandata all'e2e (getByLabel exact) |
+| 4 | G7 resilienza COT | gate 0, 66 test | mercato mancante non blocca piu' il report: escluso e segnalato come errore |

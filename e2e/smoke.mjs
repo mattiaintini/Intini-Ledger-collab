@@ -172,6 +172,29 @@ async function run() {
   const fixed = after.find((t) => t.id === "30");
   check(after.length === 31 && fixed.outcome === "SL" && fixed.pnl === -120, "modifica salvata sullo stesso trade, nessun duplicato");
 
+  // 6. Password: il journal viene cifrato nel browser e si riapre solo con la password o la recovery key
+  await page.goto(BASE + "/settings");
+  await page.getByLabel("Nuova password", { exact: true }).fill("Prova#2026");
+  await page.getByLabel("Ripeti password", { exact: true }).fill("Prova#2026");
+  await page.getByRole("button", { name: "Proteggi con password" }).click();
+  await page.getByText("Recovery key, conservala ora").waitFor({ timeout: 20000 });
+  const recovery = (await page.locator("p.select-all").innerText()).trim();
+  const raw = await page.evaluate(() => localStorage.getItem("intini_journal_v9"));
+  check(!raw.includes("XAUUSD") && !raw.includes("trades") && raw.includes('"vault":1'), "dati cifrati nel browser, nessun trade in chiaro");
+  await page.reload();
+  await page.getByText("Journal bloccato").waitFor();
+  check(true, "alla riapertura il journal è bloccato");
+  await page.getByLabel("Password", { exact: true }).fill("sbagliata");
+  await page.getByRole("button", { name: "Sblocca" }).click();
+  await page.getByText("Password errata").waitFor({ timeout: 20000 });
+  check(true, "password errata rifiutata");
+  await page.getByRole("button", { name: /recovery key/ }).click();
+  await page.getByLabel("Recovery key", { exact: true }).fill(recovery.toLowerCase());
+  await page.getByRole("button", { name: "Sblocca" }).click();
+  await page.getByText("Security").waitFor({ timeout: 20000 });
+  const unlocked = await page.evaluate(() => document.body.innerText.includes("31 trade"));
+  check(unlocked, "sbloccato con la recovery key, 31 trade intatti");
+
   await browser.close();
 }
 

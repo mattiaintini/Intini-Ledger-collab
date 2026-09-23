@@ -12,6 +12,10 @@ const socrata = (JSON.parse(readFileSync(join(dir, "eur-socrata.json"), "utf8"))
   .sort((a, b) => a.date.localeCompare(b.date));
 const annualText = readFileSync(join(dir, "eur-annual-2026.txt"), "utf8");
 const raw = new Map(parseRawCotFile(annualText, new Set(["099741"])).map((r) => [r.date, r]));
+const annual2025 = readFileSync(join(dir, "eur-annual-2025.txt"), "utf8");
+const rawBoth = new Map([...raw, ...parseRawCotFile(annual2025, new Set(["099741"])).map((r) => [r.date, r] as const)]);
+const Y2026 = new Set([2026]);
+const BOTH = new Set([2025, 2026]);
 const NOW = new Date("2026-09-23T12:00:00Z");
 
 const clone = (rows: CotRow[]) => rows.map((r) => ({ ...r }));
@@ -52,12 +56,12 @@ describe("parsing delle fonti CFTC", () => {
 });
 
 describe("verifica settimana per settimana", () => {
-  it("dati reali: tutte le settimane passano ogni controllo", () => {
-    const v = verifyMarket(socrata, raw, "2026-01-01", NOW);
+  it("dati reali: tutte le settimane passano ogni controllo, anche il confronto col file CFTC", () => {
+    const v = verifyMarket(socrata, rawBoth, BOTH, NOW);
     expect(v.counts.fail).toBe(0);
     expect(v.weeks.slice(1).every((w) => w.continuity === "pass" && w.calendar === "pass")).toBe(true);
     expect(v.weeks.every((w) => w.balance === "pass")).toBe(true);
-    expect(v.weeks.filter((w) => w.source === "pass")).toHaveLength(37);
+    expect(v.weeks.filter((w) => w.source === "pass")).toHaveLength(60);
     expect(v.freshness.status).toBe("pass");
     expect(v.status).toBe("pass");
   });
@@ -66,7 +70,7 @@ describe("verifica settimana per settimana", () => {
     const rows = clone(socrata);
     const i = rows.findIndex((r) => r.date === "2026-06-09");
     rows[i].ncLong += 1000;
-    const v = verifyMarket(rows, raw, "2026-01-01", NOW);
+    const v = verifyMarket(rows, raw, Y2026, NOW);
     const week = v.weeks[i];
     expect(week.continuity).toBe("fail"); // la variazione pubblicata non torna più
     expect(week.balance).toBe("fail"); // reportable != spec + spreading + commercial
@@ -79,29 +83,39 @@ describe("verifica settimana per settimana", () => {
     const rows = clone(socrata);
     const i = rows.findIndex((r) => r.date === "2026-06-09");
     rows.splice(i, 1);
-    const v = verifyMarket(rows, raw, "2026-01-01", NOW);
+    const v = verifyMarket(rows, raw, Y2026, NOW);
     expect(v.weeks[i].calendar).toBe("fail");
   });
 
   it("una settimana presente nell'API ma assente dal file ufficiale fallisce", () => {
     const partial = new Map(raw);
     partial.delete("2026-06-09");
-    const v = verifyMarket(socrata, partial, "2026-01-01", NOW);
+    const v = verifyMarket(socrata, partial, Y2026, NOW);
     expect(v.weeks.find((w) => w.date === "2026-06-09")!.source).toBe("fail");
   });
 
-  it("prima della copertura del file grezzo il confronto è 'skip', non 'pass'", () => {
-    const v = verifyMarket(socrata, raw, "2026-01-01", NOW);
+  it("anno senza archivio: confronto 'skip' e mercato 'da controllare', mai 'verificato'", () => {
+    const v = verifyMarket(socrata, raw, Y2026, NOW);
     expect(v.weeks.filter((w) => w.date < "2026-01-01").every((w) => w.source === "skip")).toBe(true);
+    expect(v.counts.fail).toBe(0);
+    expect(v.status).toBe("warn");
   });
 
-  it("dato vecchio di due settimane = fail di aggiornamento", () => {
-    const v = verifyMarket(socrata.slice(0, -2), raw, "2026-01-01", NOW);
-    expect(v.freshness.status).toBe("fail");
+  it("file settimanale e archivio CFTC in disaccordo: la settimana fallisce", () => {
+    const v = verifyMarket(socrata, rawBoth, BOTH, NOW, new Map([["2026-09-15", ["Campo oi: 1, 2"]]]));
+    const w = v.weeks.find((x) => x.date === "2026-09-15")!;
+    expect(w.source).toBe("fail");
+    expect(w.issues.join()).toMatch(/File settimanale e archivio CFTC diversi/);
+  });
+
+  it("report fermo da settimane (es. shutdown): avviso, non errore sui numeri", () => {
+    const v = verifyMarket(socrata.slice(0, -3), rawBoth, BOTH, NOW);
+    expect(v.freshness.status).toBe("warn");
+    expect(v.freshness.message).toMatch(/Nessun report CFTC da 21 giorni/);
   });
 
   it("file CFTC più recente dell'API = avviso di ritardo", () => {
-    const v = verifyMarket(socrata.slice(0, -1), raw, "2026-01-01", NOW);
+    const v = verifyMarket(socrata.slice(0, -1), rawBoth, BOTH, NOW);
     expect(v.apiLag.status).toBe("warn");
   });
 });

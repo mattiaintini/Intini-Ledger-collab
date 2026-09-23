@@ -96,14 +96,16 @@ export function expectedLatestReport(now: Date): string {
 /**
  * `history` in ordine cronologico crescente (API Socrata).
  * `raw` sono le righe dei file grezzi CFTC per lo stesso contratto, indicizzate per data.
- * `rawCoverageFrom` è la prima data coperta dai file grezzi scaricati: prima di quella
- * il confronto tra fonti non è possibile e viene segnato "skip", non "pass".
+ * `coveredYears` sono gli anni di cui l'archivio CFTC è stato scaricato: lì una settimana assente dal file
+ * è un errore; negli altri anni il confronto non è possibile e vale "skip", non "pass".
+ * `rawConflicts` sono le date in cui file settimanale e archivio annuale CFTC non coincidono tra loro.
  */
 export function verifyMarket(
   history: CotRow[],
   raw: Map<string, CotRow>,
-  rawCoverageFrom: string | null,
+  coveredYears: ReadonlySet<number>,
   now: Date,
+  rawConflicts: ReadonlyMap<string, string[]> = new Map(),
 ): MarketVerification {
   const weeks: WeekVerification[] = history.map((cur, i) => {
     const prev = i > 0 ? history[i - 1] : null;
@@ -136,9 +138,14 @@ export function verifyMarket(
       const s = compareSources(cur, rawRow);
       source = s.length ? "fail" : "pass";
       issues.push(...s);
-    } else if (rawCoverageFrom && cur.date >= rawCoverageFrom) {
+    } else if (coveredYears.has(Number(cur.date.slice(0, 4)))) {
       source = "fail";
       issues.push("Settimana presente nell'API ma assente nel file ufficiale CFTC");
+    }
+    const conflict = rawConflicts.get(cur.date);
+    if (conflict?.length) {
+      source = "fail";
+      issues.push(...conflict.map((c) => `File settimanale e archivio CFTC diversi: ${c}`));
     }
 
     return { date: cur.date, continuity, balance, calendar, source, issues, status: worst([continuity, balance, calendar, source]) };
@@ -153,7 +160,8 @@ export function verifyMarket(
       ? { status: "pass" as const, message: "Dato allineato all'ultimo report pubblicato" }
       : lagDays <= 9
         ? { status: "warn" as const, message: `Ultimo report di ${lagDays} giorni prima dell'atteso: pubblicazione CFTC in ritardo o festivo` }
-        : { status: "fail" as const, message: `Dato vecchio di ${lagDays} giorni rispetto all'ultimo report atteso` };
+        : // "fail" è riservato ai numeri che non tornano: un report non pubblicato (es. shutdown) è un avviso
+          { status: "warn" as const, message: `Nessun report CFTC da ${lagDays} giorni oltre l'atteso: pubblicazione sospesa o fonte ferma` };
 
   const newestRaw = [...raw.keys()].sort().at(-1);
   const apiLag =
@@ -169,6 +177,7 @@ export function verifyMarket(
     freshness: { ...freshness, latest, expected },
     apiLag,
     counts,
-    status: worst([...weeks.map((w) => w.status), freshness.status, apiLag.status]),
+    // settimane senza confronto tra fonti: i numeri tornano ma la seconda fonte non li ha confermati
+    status: worst([...weeks.map((w) => w.status), freshness.status, apiLag.status, weeks.some((w) => w.source === "skip") ? "warn" : "pass"]),
   };
 }

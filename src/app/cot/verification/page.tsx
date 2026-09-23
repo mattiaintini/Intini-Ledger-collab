@@ -26,6 +26,7 @@ export default async function VerificationPage() {
               <div>
                 <Link href={s.url} target="_blank" className="underline-offset-4 hover:underline">{s.label}</Link>
                 {s.error && <p className="text-xs text-neg">{s.error}</p>}
+                {s.note && <p className="text-xs text-subtle">{s.note}</p>}
               </div>
               <div className="flex items-center gap-3">
                 <span className="num text-xs text-muted">{s.rows.toLocaleString("it-IT")} righe</span>

@@ -104,4 +104,45 @@ describe("buildCotReport con fonti simulate", () => {
     expect(week.issues.join()).toMatch(/Campo oi/);
     expect(r.status).toBe("fail");
   });
+
+  it("archivio dell'anno non ancora pubblicato (404 a gennaio): nota, non errore, gli altri anni restano confrontati", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("deacot2026")) return new Response("Not Found", { status: 404 });
+        if (url.includes("publicreporting")) return new Response(socrataJson);
+        if (url.includes("deafut")) return new Response(weeklyText);
+        return new Response(zipSync({ "annual.txt": strToU8(annual[2025]) }));
+      }),
+    );
+    const r = await buildCotReport({ now: NOW, markets: [EUR] });
+    const src = r.sources.find((x) => x.id === "annual-2026")!;
+    expect(src.ok).toBe(true);
+    expect(src.note).toMatch(/Non ancora pubblicato/);
+    const weeks = r.markets[0].verification.weeks;
+    expect(weeks.filter((w) => w.date < "2026-01-01").every((w) => w.source === "pass")).toBe(true);
+    expect(weeks.find((w) => w.date === "2026-09-15")!.source).toBe("pass"); // coperta dal file settimanale
+    expect(r.summary.weeksFailed).toBe(0);
+    expect(r.status).toBe("warn");
+  });
+
+  it("file settimanale diverso dall'archivio annuale sulla stessa settimana: errore", async () => {
+    const cols = weeklyText.split(",");
+    cols[7] = String(Number(cols[7]) + 1); // open interest
+    const tamperedWeekly = cols.join(",");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("publicreporting")) return new Response(socrataJson);
+        if (url.includes("deafut")) return new Response(tamperedWeekly);
+        const year = Number(url.match(/deacot(\d{4})/)![1]);
+        return new Response(zipSync({ "annual.txt": strToU8(annual[year]) }));
+      }),
+    );
+    const r = await buildCotReport({ now: NOW, markets: [EUR] });
+    const week = r.markets[0].verification.weeks.find((w) => w.date === "2026-09-15")!;
+    expect(week.source).toBe("fail");
+    expect(week.issues.join()).toMatch(/File settimanale e archivio CFTC diversi/);
+    expect(r.status).toBe("fail");
+  });
 });

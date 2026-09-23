@@ -28,3 +28,36 @@ export function dateIT(iso: string, opts: Intl.DateTimeFormatOptions = { day: "2
 
 export const tone = (n: number | null | undefined) =>
   n === null || n === undefined || n === 0 || !Number.isFinite(n) ? "text-fg" : n > 0 ? "text-pos" : "text-neg";
+
+/**
+ * Numero scritto a mano, in formato italiano o inglese: "1.234,56", "1234,56", "1234.56", "-0,5".
+ * Con entrambi i separatori l'ultimo e' il decimale. Con un solo punto e' un decimale (0.5 lotti),
+ * con piu' punti sono migliaia. Stringa vuota o non numerica = NaN.
+ */
+export function parseNum(input: string): number {
+  const s = input.trim().replace(/\s/g, "");
+  if (!/^[+-]?[\d.,]+$/.test(s) || !/\d/.test(s)) return NaN;
+  const lastDot = s.lastIndexOf(".");
+  const lastComma = s.lastIndexOf(",");
+  let normalized: string;
+  if (lastDot >= 0 && lastComma >= 0) {
+    const decimal = lastDot > lastComma ? "." : ",";
+    const thousands = decimal === "." ? "," : ".";
+    const [int, dec, ...rest] = s.split(decimal);
+    if (rest.length) return NaN;
+    if (!/^[+-]?\d{1,3}([.,]\d{3})*$/.test(int) || int.includes(decimal)) return NaN;
+    normalized = `${int.split(thousands).join("")}.${dec}`;
+  } else if (lastComma >= 0) {
+    const parts = s.split(",");
+    if (parts.length > 2) return NaN;
+    normalized = parts.join(".");
+  } else {
+    const parts = s.split(".");
+    normalized = parts.length > 2 ? parts.join("") : s;
+  }
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+/** Valore per un campo di input, con la virgola decimale. */
+export const inputNum = (n: number, digits = 2) => (Number.isFinite(n) ? n.toFixed(digits).replace(".", ",") : "");

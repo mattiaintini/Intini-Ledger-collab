@@ -124,7 +124,7 @@ describe("validazione trade", () => {
 
   it("avviso se il P&L si allontana di oltre il 25% dal piano", () => {
     expect(validateTrade(input({ pnl: 160 }), ctx).warnings).toEqual([]); // -20%
-    expect(validateTrade(input({ pnl: 140 }), ctx).warnings[0]).toMatch(/lontano dal piano 200.00/);
+    expect(validateTrade(input({ pnl: 140 }), ctx).warnings[0]).toMatch(/P&L 140,00 lontano dal piano 200,00/);
   });
 
   it("avvisi su rischio, limite giornaliero e doppioni", () => {

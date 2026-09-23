@@ -9,7 +9,7 @@ import { parseBackup } from "@/lib/journal/backup";
 import { download, tradesToCsv } from "@/lib/journal/csv";
 import { CURRENCIES, type Currency, type Journal } from "@/lib/journal/types";
 import type { MigrationReport } from "@/lib/journal/migrate";
-import { dateIT } from "@/lib/format";
+import { dateIT, parseNum } from "@/lib/format";
 
 function ProfileForm({ journal }: { journal: Journal }) {
   const { updateProfile } = useJournal();
@@ -17,8 +17,8 @@ function ProfileForm({ journal }: { journal: Journal }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const save = (e: React.FormEvent) => {
     e.preventDefault();
-    const capital = Number(f.capital.replace(",", "."));
-    const max = Number(f.max.replace(",", "."));
+    const capital = parseNum(f.capital);
+    const max = parseNum(f.max);
     if (!(capital > 0)) return setMsg({ ok: false, text: "Capitale iniziale maggiore di zero" });
     if (!(max > 0 && max <= 100)) return setMsg({ ok: false, text: "Perdita giornaliera tra 0 e 100%" });
     updateProfile({ name: f.name.trim(), capital, currency: f.currency, maxDailyLossPct: max });

@@ -18,7 +18,7 @@ import {
   type Session,
   type TradeType,
 } from "@/lib/journal/types";
-import { money } from "@/lib/format";
+import { inputNum, money, parseNum } from "@/lib/format";
 import { Button, Field } from "./ui";
 
 /** Riduce l'immagine a 1280px JPEG: una schermata del grafico passa da ~2 MB a ~150 KB. */
@@ -72,8 +72,7 @@ const empty = (): Draft => ({
   durationMin: "",
 });
 
-const optional = (s: string) => (s.trim() === "" ? undefined : Number(s.replace(",", ".")));
-const required = (s: string) => (s.trim() === "" ? NaN : Number(s.replace(",", ".")));
+const optional = (s: string) => (s.trim() === "" ? undefined : parseNum(s));
 
 export function TradeForm({ journal, onSaved }: { journal: Journal; onSaved?: () => void }) {
   const { addTrade } = useJournal();
@@ -86,8 +85,8 @@ export function TradeForm({ journal, onSaved }: { journal: Journal; onSaved?: ()
   const cur = journal.profile.currency;
 
   const ctx = useMemo(() => contextFor(journal, { date: d.date, time: d.time }), [journal, d.date, d.time]);
-  const riskAmount = (ctx.equityBefore * (Number(d.riskPct.replace(",", ".")) || 0)) / 100;
-  const suggested = d.outcome ? plannedPnl(d.outcome, riskAmount, Number(d.rr.replace(",", ".")) || 0) : null;
+  const riskAmount = (ctx.equityBefore * (parseNum(d.riskPct) || 0)) / 100;
+  const suggested = d.outcome ? plannedPnl(d.outcome, riskAmount, parseNum(d.rr) || 0) : null;
 
   const input: TradeInput = {
     date: d.date,
@@ -96,12 +95,12 @@ export function TradeForm({ journal, onSaved }: { journal: Journal; onSaved?: ()
     session: d.session,
     type: d.type,
     direction: d.direction,
-    lots: required(d.lots),
-    riskPct: required(d.riskPct),
-    rr: required(d.rr),
+    lots: parseNum(d.lots),
+    riskPct: parseNum(d.riskPct),
+    rr: parseNum(d.rr),
     grade: d.grade,
     outcome: (d.outcome || "X") as Outcome,
-    pnl: pnlTouched ? required(d.pnl) : (suggested ?? NaN),
+    pnl: pnlTouched ? parseNum(d.pnl) : (suggested ?? NaN),
     notes: d.notes,
     image,
     maeR: optional(d.maeR),
@@ -209,8 +208,8 @@ export function TradeForm({ journal, onSaved }: { journal: Journal; onSaved?: ()
           <input
             className="field num"
             inputMode="decimal"
-            placeholder={suggested !== null ? suggested.toFixed(2) : "0,00"}
-            value={pnlTouched ? d.pnl : suggested !== null ? suggested.toFixed(2) : ""}
+            placeholder={suggested !== null ? inputNum(suggested) : "0,00"}
+            value={pnlTouched ? d.pnl : suggested !== null ? inputNum(suggested) : ""}
             onChange={(e) => {
               setPnlTouched(true);
               set("pnl", e.target.value);

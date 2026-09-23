@@ -6,9 +6,7 @@ import { Button, Card, CardTitle, Field, PageHeader, Stat } from "@/components/u
 import { useJournal } from "@/lib/journal/store";
 import { computeStats } from "@/lib/journal/stats";
 import { monteCarlo, type MonteCarloResult } from "@/lib/montecarlo";
-import { num, pct } from "@/lib/format";
-
-const n = (s: string) => Number(s.replace(",", "."));
+import { num, parseNum as n, pct } from "@/lib/format";
 
 function PositionSize({ capital }: { capital: number }) {
   const [cap, setCap] = useState(String(Math.round(capital)));

@@ -17,6 +17,8 @@ export const todayISO = (now = new Date()) =>
 
 const isDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(`${s}T00:00:00Z`)) && new Date(`${s}T00:00:00Z`).toISOString().startsWith(s);
 
+const eur = (n: number) => n.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 /** Tolleranza oltre la quale il P&L si discosta dal piano (capitale x rischio x RR). */
 export const PLAN_TOLERANCE = 0.25;
 
@@ -63,10 +65,10 @@ export function validateTrade(
     const plan = plannedPnl(t.outcome, riskAmount, t.rr);
     if (t.outcome === "BE") {
       if (Math.abs(t.pnl) > riskAmount * PLAN_TOLERANCE) {
-        warnings.push(`Break even con P&L ${t.pnl.toFixed(2)}, oltre il ${PLAN_TOLERANCE * 100}% del rischio: controlla l'esito`);
+        warnings.push(`Break even con P&L ${eur(t.pnl)}, oltre il ${PLAN_TOLERANCE * 100}% del rischio: controlla l'esito`);
       }
     } else if (Math.abs(t.pnl - plan) > Math.abs(plan) * PLAN_TOLERANCE) {
-      warnings.push(`P&L ${t.pnl.toFixed(2)} lontano dal piano ${plan.toFixed(2)} (capitale x ${t.riskPct}% x ${t.outcome === "TP" ? `RR ${t.rr}` : "1R"}): slippage, parziale o dato errato`);
+      warnings.push(`P&L ${eur(t.pnl)} lontano dal piano ${eur(plan)} (capitale x ${t.riskPct}% x ${t.outcome === "TP" ? `RR ${t.rr}` : "1R"}): slippage, parziale o dato errato`);
     }
     if (t.riskPct > ctx.maxDailyLossPct) warnings.push(`Rischio ${t.riskPct}% oltre il limite giornaliero di ${ctx.maxDailyLossPct}%`);
     const dayAfter = ctx.dayPnlBefore + t.pnl;

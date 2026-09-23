@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { useJournal } from "@/lib/journal/store";
 import { CURRENCIES, DEFAULT_PROFILE, type Currency, type Journal } from "@/lib/journal/types";
 import type { MigrationReport } from "@/lib/journal/migrate";
+import { parseNum } from "@/lib/format";
 import { Button, Card, Field, PageHeader } from "./ui";
 
 export function MigrationSummary({ report }: { report: MigrationReport }) {
@@ -29,7 +30,7 @@ function Onboarding() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cap = Number(capital);
+    const cap = parseNum(capital);
     if (!Number.isFinite(cap) || cap <= 0) return setError("Capitale iniziale maggiore di zero");
     createProfile({ ...DEFAULT_PROFILE, name: name.trim(), capital: cap, currency });
   };

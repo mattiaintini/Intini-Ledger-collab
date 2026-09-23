@@ -1,7 +1,7 @@
 # Backlog
 
 1. [x] G1 gate unico `npm run gate`
-2. [ ] G5 parser numeri italiano + P&L suggerito con virgola
+2. [x] G5 parser numeri italiano + P&L suggerito con virgola
 3. [ ] G6 campi con label/htmlFor
 4. [ ] G7 resilienza COT con fetch simulato
 5. [ ] G4 modifica trade in place

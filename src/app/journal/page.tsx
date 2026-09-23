@@ -26,29 +26,29 @@ function JournalView({ journal }: { journal: Journal }) {
     <>
       <PageHeader
         title="Journal"
-        description={`${all.length} trade registrati. Ogni trade passa dagli stessi controlli dell'inserimento.`}
+        description={`${all.length} trade. Tocca una riga per aprirla.`}
         actions={
           <>
-            <Button onClick={() => download(`journal_${new Date().toISOString().slice(0, 10)}.csv`, tradesToCsv(journal.trades), "text/csv")} disabled={!all.length}>Esporta CSV</Button>
-            <ButtonLink href="/journal/new" variant="primary">Nuovo trade</ButtonLink>
+            <Button size="sm" onClick={() => download(`journal_${new Date().toISOString().slice(0, 10)}.csv`, tradesToCsv(journal.trades), "text/csv")} disabled={!all.length}>Esporta CSV</Button>
+            <ButtonLink href="/journal/new" variant="primary" size="sm">Nuovo trade</ButtonLink>
           </>
         }
       />
       <Card>
-        <div className="mb-4 grid grid-cols-2 gap-3 md:flex md:items-center">
-          <select className="field md:w-44" value={asset} onChange={(e) => setAsset(e.target.value)} aria-label="Strumento">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <select className="pill-select" value={asset} onChange={(e) => setAsset(e.target.value)} aria-label="Strumento">
             <option value="">Tutti gli strumenti</option>
             {assets.map((a) => <option key={a}>{a}</option>)}
           </select>
-          <select className="field md:w-44" value={outcome} onChange={(e) => setOutcome(e.target.value as Outcome | "")} aria-label="Esito">
+          <select className="pill-select" value={outcome} onChange={(e) => setOutcome(e.target.value as Outcome | "")} aria-label="Esito">
             <option value="">Tutti gli esiti</option>
             {OUTCOMES.map((o) => <option key={o} value={o}>{OUTCOME_LABEL[o]}</option>)}
           </select>
-          <select className="field md:w-44" value={month} onChange={(e) => setMonth(e.target.value)} aria-label="Mese">
+          <select className="pill-select" value={month} onChange={(e) => setMonth(e.target.value)} aria-label="Mese">
             <option value="">Tutti i mesi</option>
             {months.map((m) => <option key={m} value={m}>{new Date(`${m}-15T12:00:00Z`).toLocaleDateString("it-IT", { month: "long", year: "numeric" })}</option>)}
           </select>
-          <p className="text-sm text-muted md:ml-auto">
+          <p className="ml-auto text-[13px] text-muted">
             {list.length} trade, <span className={`num ${tone(net)}`}>{money(net, cur, { sign: true })}</span>
           </p>
         </div>

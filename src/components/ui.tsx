@@ -133,11 +133,11 @@ export function Row({ label, error, children, stacked = false }: { label: string
     ? cloneElement(children, { id: children.props.id ?? id, "aria-describedby": error ? `${id}-err` : undefined })
     : children;
   return (
-    <div className={`px-4 ${stacked ? "py-3" : "flex min-h-11 items-center justify-between gap-4 py-1.5"}`}>
+    <div className={`px-4 ${stacked ? "py-3" : "flex min-h-11 flex-wrap items-center justify-between gap-x-4 py-1.5"}`}>
       <label htmlFor={id} className={`shrink-0 text-[15px] ${stacked ? "mb-2 block" : ""}`}>{label}</label>
       <div className={stacked ? "" : "flex min-w-0 flex-1 justify-end"}>{control}</div>
       {error && (
-        <p id={`${id}-err`} role="alert" className={`text-[13px] text-alert ${stacked ? "mt-1" : "basis-full text-right"}`}>
+        <p id={`${id}-err`} role="alert" className={`text-[13px] text-alert ${stacked ? "mt-1" : "basis-full pb-1 text-right"}`}>
           {error}
         </p>
       )}

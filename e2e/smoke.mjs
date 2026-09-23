@@ -84,7 +84,7 @@ async function run() {
 
     // 4. Proposte del QA UX
     await page.goto(BASE + "/journal");
-    check((await page.getByRole("link", { name: "da correggere" }).count()) === 2, `${tag} journal: trade incoerenti marcati`);
+    check((await page.getByRole("img", { name: "Da correggere" }).count()) === 2, `${tag} journal: trade incoerenti marcati`);
     await page.goto(BASE + "/tools");
     const eq = await page.getByLabel("Equity attuale", { exact: true }).inputValue();
     check(eq === "11729", `${tag} position size sull'equity attuale, non sul capitale iniziale`, eq);
@@ -128,7 +128,7 @@ async function run() {
 
   await field("Strumento").fill("xauusd");
   await field("Lotti").fill("0,5");
-  await field("Esito").selectOption("TP");
+  await form.getByRole("group", { name: "Esito" }).getByRole("button", { name: "Take profit" }).click();
   check((await field("P&L (€)").inputValue()) === "200,00", "P&L suggerito dal piano con la virgola", await field("P&L (€)").inputValue());
 
   await field("P&L (€)").fill("-50");
@@ -143,7 +143,7 @@ async function run() {
 
   await field("Strumento").fill("EURUSD");
   await field("Lotti").fill("1");
-  await field("Esito").selectOption("SL");
+  await form.getByRole("group", { name: "Esito" }).getByRole("button", { name: "Stop loss" }).click();
   await form.getByRole("button", { name: "Registra trade" }).click();
   await form.getByText("Trade registrato.").waitFor();
   const trades = await page.evaluate(() => JSON.parse(localStorage.getItem("intini_journal_v9")).trades);
@@ -159,12 +159,11 @@ async function run() {
   await page.getByRole("button", { name: "Importa profilo mattia" }).click();
   await page.goto(BASE + "/settings");
   await page.getByText(/errori su 2 trade/).waitFor();
-  const row = page.locator("li", { hasText: "Take profit con P&L non positivo" });
-  await row.getByRole("link", { name: "Correggi" }).click();
+  await page.getByRole("link", { name: /Take profit con P&L non positivo/ }).click();
   await page.getByText("Problemi trovati dal controllo dati").waitFor();
   const editForm = page.locator("form").first();
   check((await editForm.getByLabel("P&L (€)", { exact: true }).inputValue()) === "-120,00", "modifica: P&L registrato precompilato");
-  await editForm.getByLabel("Esito", { exact: true }).selectOption("SL");
+  await editForm.getByRole("group", { name: "Esito" }).getByRole("button", { name: "Stop loss" }).click();
   await editForm.getByRole("button", { name: "Salva modifiche" }).click();
   await page.waitForURL(/\/settings/);
   await page.getByText(/errori su 1 trade/).waitFor();
@@ -191,7 +190,7 @@ async function run() {
   await page.getByRole("button", { name: /recovery key/ }).click();
   await page.getByLabel("Recovery key", { exact: true }).fill(recovery.toLowerCase());
   await page.getByRole("button", { name: "Sblocca" }).click();
-  await page.getByText("Security").waitFor({ timeout: 20000 });
+  await page.getByText("Sicurezza").waitFor({ timeout: 20000 });
   const unlocked = await page.evaluate(() => document.body.innerText.includes("31 trade"));
   check(unlocked, "sbloccato con la recovery key, 31 trade intatti");
 

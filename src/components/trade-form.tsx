@@ -20,7 +20,8 @@ import {
   type TradeType,
 } from "@/lib/journal/types";
 import { inputNum, money, parseNum } from "@/lib/format";
-import { Button, Field } from "./ui";
+import { ChevronRight, TriangleAlert } from "lucide-react";
+import { Button, Group, Row, Segmented } from "./ui";
 
 /** Riduce l'immagine a 1280px JPEG: una schermata del grafico passa da ~2 MB a ~150 KB. */
 async function compressImage(file: File): Promise<string> {
@@ -160,82 +161,59 @@ export function TradeForm({ journal, initial, onSaved }: { journal: Journal; ini
     onSaved?.();
   };
 
+  const outcomeError = errors.outcome && !d.outcome ? "Seleziona l'esito" : errors.outcome;
+
   return (
-    <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Data" error={errors.date}>
-          <input type="date" className="field" value={d.date} max={todayISO()} onChange={(e) => set("date", e.target.value)} aria-invalid={!!errors.date} />
-        </Field>
-        <Field label="Ora" error={errors.time}>
-          <input type="time" className="field" value={d.time} onChange={(e) => set("time", e.target.value)} />
-        </Field>
-      </div>
+    <form onSubmit={submit} className="flex flex-col gap-6" noValidate>
+      <Group header="Quando">
+        <Row label="Data" error={errors.date}>
+          <input type="date" className="row-input" value={d.date} max={todayISO()} onChange={(e) => set("date", e.target.value)} aria-invalid={!!errors.date} />
+        </Row>
+        <Row label="Ora" error={errors.time}>
+          <input type="time" className="row-input" value={d.time} onChange={(e) => set("time", e.target.value)} />
+        </Row>
+      </Group>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Strumento" error={errors.asset}>
-          <input className="field uppercase" placeholder="XAUUSD" value={d.asset} onChange={(e) => set("asset", e.target.value)} aria-invalid={!!errors.asset} autoComplete="off" />
-        </Field>
-        <Field label="Direzione" group>
-          <div className="grid grid-cols-2 rounded-[var(--radius-ui)] border border-line p-0.5">
-            {(["LONG", "SHORT"] as const).map((dir) => (
-              <button
-                type="button"
-                key={dir}
-                onClick={() => set("direction", dir)}
-                aria-pressed={d.direction === dir}
-                className={`rounded-[8px] py-2 text-sm ${d.direction === dir ? "bg-surface-3 text-fg" : "text-muted"}`}
-              >
-                {dir === "LONG" ? "Long" : "Short"}
-              </button>
-            ))}
-          </div>
-        </Field>
-      </div>
+      <Group header="Strumento">
+        <Row label="Strumento" error={errors.asset}>
+          <input className="row-input uppercase" placeholder="XAUUSD" value={d.asset} onChange={(e) => set("asset", e.target.value)} aria-invalid={!!errors.asset} autoComplete="off" autoCapitalize="characters" />
+        </Row>
+        <Row label="Direzione">
+          <Segmented<Direction> label="Direzione" value={d.direction} options={[["LONG", "Long"], ["SHORT", "Short"]]} onChange={(v) => set("direction", v)} size="sm" />
+        </Row>
+      </Group>
 
-      <div className="grid grid-cols-3 gap-3">
-        <Field label="Sessione">
-          <select className="field" value={d.session} onChange={(e) => set("session", e.target.value as Session)}>
-            {SESSIONS.map((s) => <option key={s} value={s}>{SESSION_SHORT[s]}</option>)}
-          </select>
-        </Field>
-        <Field label="Tipo">
-          <select className="field" value={d.type} onChange={(e) => set("type", e.target.value as TradeType)}>
-            {TRADE_TYPES.map((s) => <option key={s} value={s}>{TYPE_SHORT[s]}</option>)}
-          </select>
-        </Field>
-        <Field label="Setup">
-          <select className="field" value={d.grade} onChange={(e) => set("grade", e.target.value as Grade)}>
-            {GRADES.map((g) => <option key={g} value={g}>{g}</option>)}
-          </select>
-        </Field>
-      </div>
+      <Group header="Piano">
+        <Row label="Sessione">
+          <Segmented<Session> label="Sessione" value={d.session} options={SESSIONS.map((x) => [x, SESSION_SHORT[x]] as const)} onChange={(v) => set("session", v)} size="sm" />
+        </Row>
+        <Row label="Tipo">
+          <Segmented<TradeType> label="Tipo" value={d.type} options={TRADE_TYPES.map((x) => [x, TYPE_SHORT[x]] as const)} onChange={(v) => set("type", v)} size="sm" />
+        </Row>
+        <Row label="Setup">
+          <Segmented<Grade> label="Setup" value={d.grade} options={GRADES.map((g) => [g, g] as const)} onChange={(v) => set("grade", v)} size="sm" />
+        </Row>
+        <Row label="Lotti" error={errors.lots}>
+          <input className="row-input num" inputMode="decimal" placeholder="0,50" value={d.lots} onChange={(e) => set("lots", e.target.value)} aria-invalid={!!errors.lots} />
+        </Row>
+        <Row label="Rischio %" error={errors.riskPct}>
+          <input className="row-input num" inputMode="decimal" value={d.riskPct} onChange={(e) => set("riskPct", e.target.value)} aria-invalid={!!errors.riskPct} />
+        </Row>
+        <Row label="RR" error={errors.rr}>
+          <input className="row-input num" inputMode="decimal" value={d.rr} onChange={(e) => set("rr", e.target.value)} aria-invalid={!!errors.rr} />
+        </Row>
+      </Group>
 
-      <div className="grid grid-cols-3 gap-3">
-        <Field label="Lotti" error={errors.lots}>
-          <input className="field num" inputMode="decimal" value={d.lots} onChange={(e) => set("lots", e.target.value)} aria-invalid={!!errors.lots} />
-        </Field>
-        <Field label="Rischio %" error={errors.riskPct}>
-          <input className="field num" inputMode="decimal" value={d.riskPct} onChange={(e) => set("riskPct", e.target.value)} aria-invalid={!!errors.riskPct} />
-        </Field>
-        <Field label="RR" error={errors.rr}>
-          <input className="field num" inputMode="decimal" value={d.rr} onChange={(e) => set("rr", e.target.value)} aria-invalid={!!errors.rr} />
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Esito" error={errors.outcome && !d.outcome ? "Seleziona l'esito" : errors.outcome}>
-          <select className="field" value={d.outcome} onChange={(e) => set("outcome", e.target.value as Outcome)} aria-invalid={!!errors.outcome}>
-            <option value="" disabled>Seleziona</option>
-            {OUTCOMES.map((o) => <option key={o} value={o}>{OUTCOME_LABEL[o]}</option>)}
-          </select>
-        </Field>
-        <Field
-          label={`P&L (${cur})`}
-          error={errors.pnl}
-          hint={suggested !== null ? `Da piano: ${money(suggested, cur)} su capitale ${money(ctx.equityBefore, cur)}` : "Scegli l'esito per il calcolo automatico"}
-        >
+      <Group
+        header="Risultato"
+        footer={suggested !== null ? `Da piano: ${money(suggested, cur)} su un capitale di ${money(ctx.equityBefore, cur)}.` : "Scegli l'esito: il P&L si calcola dal piano e puoi correggerlo."}
+      >
+        <Row label="Esito" error={outcomeError} stacked>
+          <Segmented<Outcome> label="Esito" value={d.outcome} options={OUTCOMES.map((o) => [o, OUTCOME_LABEL[o]] as const)} onChange={(v) => set("outcome", v)} className="w-full" />
+        </Row>
+        <Row label={`P&L (${cur})`} error={errors.pnl}>
           <input
-            className="field num"
+            className="row-input num font-semibold"
             inputMode="decimal"
             placeholder={suggested !== null ? inputNum(suggested) : "0,00"}
             value={pnlTouched ? d.pnl : suggested !== null ? inputNum(suggested) : ""}
@@ -245,32 +223,41 @@ export function TradeForm({ journal, initial, onSaved }: { journal: Journal; ini
             }}
             aria-invalid={!!errors.pnl}
           />
-        </Field>
-      </div>
+        </Row>
+      </Group>
 
-      <Field label="Note">
-        <textarea className="field min-h-20 resize-y" value={d.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Motivo d'ingresso, gestione, errori" />
-      </Field>
+      <Group header="Note">
+        <textarea
+          aria-label="Note"
+          className="block min-h-24 w-full resize-y bg-transparent px-4 py-3 text-[15px] outline-none placeholder:text-subtle"
+          value={d.notes}
+          onChange={(e) => set("notes", e.target.value)}
+          placeholder="Motivo d'ingresso, gestione, errori"
+        />
+      </Group>
 
-      <details className="rounded-[var(--radius-ui)] border border-line px-3 py-2">
-        <summary className="cursor-pointer text-sm text-muted">Dati di esecuzione (facoltativi)</summary>
-        <p className="mt-2 text-xs text-subtle">Servono per MAE, MFE e durata in Analytics. Se non li inserisci, quelle metriche restano vuote: niente valori stimati.</p>
-        <div className="mt-3 grid grid-cols-3 gap-3 pb-2">
-          <Field label="MAE (R)" error={errors.maeR}>
-            <input className="field num" inputMode="decimal" placeholder="-0,4" value={d.maeR} onChange={(e) => set("maeR", e.target.value)} />
-          </Field>
-          <Field label="MFE (R)" error={errors.mfeR}>
-            <input className="field num" inputMode="decimal" placeholder="2,5" value={d.mfeR} onChange={(e) => set("mfeR", e.target.value)} />
-          </Field>
-          <Field label="Durata (min)" error={errors.durationMin}>
-            <input className="field num" inputMode="numeric" value={d.durationMin} onChange={(e) => set("durationMin", e.target.value)} />
-          </Field>
-        </div>
-      </details>
+      <Group header="Esecuzione" footer="Facoltativi. Servono per MAE, MFE e durata in Analytics: se mancano, quelle metriche restano vuote, mai stimate.">
+        <Row label="MAE (R)" error={errors.maeR}>
+          <input className="row-input num" inputMode="decimal" placeholder="−0,4" value={d.maeR} onChange={(e) => set("maeR", e.target.value)} />
+        </Row>
+        <Row label="MFE (R)" error={errors.mfeR}>
+          <input className="row-input num" inputMode="decimal" placeholder="2,5" value={d.mfeR} onChange={(e) => set("mfeR", e.target.value)} />
+        </Row>
+        <Row label="Durata (min)" error={errors.durationMin}>
+          <input className="row-input num" inputMode="numeric" placeholder="45" value={d.durationMin} onChange={(e) => set("durationMin", e.target.value)} />
+        </Row>
+      </Group>
 
-      <div className="flex items-center gap-3">
-        <label className="cursor-pointer text-sm text-muted underline-offset-4 hover:underline">
-          {image ? "Cambia immagine" : "Allega immagine"}
+      <Group>
+        <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 px-4 active:bg-surface-3">
+          <span className="text-[15px]">{image ? "Cambia immagine" : "Allega immagine"}</span>
+          <span className="flex items-center gap-2">
+            {image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={image} alt="Anteprima" className="h-8 w-12 rounded-[4px] object-cover" />
+            )}
+            <ChevronRight size={16} className="text-subtle" aria-hidden />
+          </span>
           <input
             type="file"
             accept="image/*"
@@ -282,23 +269,26 @@ export function TradeForm({ journal, initial, onSaved }: { journal: Journal; ini
           />
         </label>
         {image && (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={image} alt="Anteprima" className="h-10 w-16 rounded object-cover" />
-            <button type="button" className="text-xs text-subtle" onClick={() => setImage(undefined)}>Rimuovi</button>
-          </>
+          <button type="button" className="flex min-h-11 w-full items-center px-4 text-[15px] text-alert active:bg-surface-3" onClick={() => setImage(undefined)}>
+            Rimuovi immagine
+          </button>
         )}
-      </div>
+      </Group>
 
       {confirmWarnings && v.warnings.length > 0 && (
-        <div className="rounded-[var(--radius-ui)] border border-warn/40 p-3 text-sm">
-          <p className="text-warn">Controlla prima di salvare</p>
-          <ul className="mt-1 list-disc pl-5 text-muted">{v.warnings.map((w) => <li key={w}>{w}</li>)}</ul>
+        <div className="flex gap-3 rounded-[var(--radius-card)] bg-surface px-4 py-3">
+          <TriangleAlert size={18} className="mt-0.5 shrink-0 text-warn" aria-hidden />
+          <div className="text-[15px]">
+            <p className="font-semibold">Controlla prima di salvare</p>
+            <ul className="mt-1 text-muted">{v.warnings.map((w) => <li key={w}>{w}</li>)}</ul>
+          </div>
         </div>
       )}
 
-      <Button type="submit" variant="primary">{confirmWarnings ? "Salva comunque" : initial ? "Salva modifiche" : "Registra trade"}</Button>
-      {saved && <p className="text-sm text-pos">Trade registrato.</p>}
+      <Button type="submit" variant="primary" size="lg" className="w-full">
+        {confirmWarnings ? "Salva comunque" : initial ? "Salva modifiche" : "Registra trade"}
+      </Button>
+      {saved && <p className="-mt-3 text-center text-[13px] text-muted">Trade registrato.</p>}
     </form>
   );
 }

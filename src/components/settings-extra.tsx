@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 import { useJournal } from "@/lib/journal/store";
 import { readPrefs, savePrefs, type Prefs, type ThemePref } from "@/lib/prefs";
-import { Button, Card, CardTitle, Field, Group, Segmented } from "./ui";
+import { Button, Group, Row, Segmented } from "./ui";
 
 // preferenze lette dal browser; sul server valgono quelle di default
 let listeners: (() => void)[] = [];
@@ -90,37 +90,42 @@ export function SecurityCard() {
       if (ok) setOld("");
     });
 
+  const pwRow = (label: string, value: string, set: (v: string) => void, auto: string) => (
+    <Row label={label}>
+      <input className="row-input" type="password" autoComplete={auto} value={value} onChange={(e) => set(e.target.value)} placeholder="Obbligatoria" />
+    </Row>
+  );
+
   return (
-    <Card>
-      <CardTitle aside={hasPassword ? "cifrato" : "non protetto"}>Security</CardTitle>
+    <div className="flex flex-col gap-3">
       {recovery && (
-        <div className="mb-5 rounded-[var(--radius-ui)] border border-line-strong p-4">
-          <p className="text-sm">Recovery key, conservala ora: non verrà mostrata di nuovo.</p>
-          <p className="num mt-2 select-all text-lg font-semibold tracking-[0.08em]">{recovery}</p>
-          <p className="mt-2 text-xs text-subtle">Senza password e senza recovery key i dati non si possono più aprire, nemmeno da me.</p>
-          <Button className="mt-3" onClick={() => setRecovery(null)}>L&apos;ho salvata</Button>
+        <div className="rounded-[var(--radius-card)] bg-surface p-4">
+          <p className="text-[15px] font-semibold">Recovery key, conservala ora: non verrà mostrata di nuovo.</p>
+          <p className="num mt-2 select-all text-[22px] font-semibold tracking-[0.06em]">{recovery}</p>
+          <p className="mt-2 text-[13px] text-muted">Senza password e senza recovery key i dati non si possono più aprire, nemmeno da me.</p>
+          <Button className="mt-3" size="sm" onClick={() => setRecovery(null)}>L&apos;ho salvata</Button>
         </div>
       )}
       {!hasPassword ? (
-        <form onSubmit={enable} className="grid gap-4 sm:grid-cols-2">
-          <p className="text-sm text-muted sm:col-span-2">
-            Con una password il journal viene cifrato in questo browser (AES-256) e chiede lo sblocco a ogni apertura.
-          </p>
-          <Field label="Nuova password"><input className="field" type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} /></Field>
-          <Field label="Ripeti password"><input className="field" type="password" autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} /></Field>
-          <div className="sm:col-span-2"><Button type="submit" variant="solid" disabled={busy}>{busy ? "Cifratura in corso" : "Proteggi con password"}</Button></div>
+        <form onSubmit={enable}>
+          <Group header="Sicurezza" footer={msg ? <span className={msg.ok ? "" : "text-alert"}>{msg.text}</span> : "Con una password il journal viene cifrato in questo browser (AES-256) e chiede lo sblocco a ogni apertura. Almeno 8 caratteri, una maiuscola e un simbolo."}>
+            {pwRow("Nuova password", pw, setPw, "new-password")}
+            {pwRow("Ripeti password", pw2, setPw2, "new-password")}
+            <button type="submit" disabled={busy} className="flex min-h-11 w-full items-center px-4 text-[15px] font-semibold active:bg-surface-3 disabled:opacity-40">
+              {busy ? "Cifratura in corso" : "Proteggi con password"}
+            </button>
+          </Group>
         </form>
       ) : (
-        <form onSubmit={change} className="grid gap-4 sm:grid-cols-2">
-          <Field label="Password attuale"><input className="field" type="password" autoComplete="current-password" value={old} onChange={(e) => setOld(e.target.value)} /></Field>
-          <Field label="Nuova password"><input className="field" type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} /></Field>
-          <div className="flex flex-wrap gap-2 sm:col-span-2">
-            <Button type="submit" variant="solid" disabled={busy || !old}>Cambia password</Button>
-            <Button type="button" variant="danger" disabled={busy || !old} onClick={remove}>Disattiva cifratura</Button>
-          </div>
+        <form onSubmit={change}>
+          <Group header="Sicurezza" footer={msg ? <span className={msg.ok ? "" : "text-alert"}>{msg.text}</span> : "Journal cifrato. La recovery key resta valida anche se cambi password."}>
+            {pwRow("Password attuale", old, setOld, "current-password")}
+            {pwRow("Nuova password", pw, setPw, "new-password")}
+            <button type="submit" disabled={busy || !old} className="flex min-h-11 w-full items-center px-4 text-[15px] font-semibold active:bg-surface-3 disabled:opacity-40">Cambia password</button>
+            <button type="button" disabled={busy || !old} onClick={remove} className="flex min-h-11 w-full items-center px-4 text-[15px] text-alert active:bg-surface-3 disabled:opacity-40">Disattiva cifratura</button>
+          </Group>
         </form>
       )}
-      {msg && <p className={`mt-3 text-sm ${msg.ok ? "text-fg" : "text-alert"}`}>{msg.text}</p>}
-    </Card>
+    </div>
   );
 }

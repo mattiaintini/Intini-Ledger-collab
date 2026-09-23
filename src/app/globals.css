@@ -127,11 +127,6 @@ body {
 }
 
 .num {
-  font-family: var(--font-mono);
-  letter-spacing: -0.01em;
-}
-
-.num {
   font-variant-numeric: tabular-nums;
 }
 
@@ -196,4 +191,37 @@ dialog.sheet[open] {
     from { transform: translateY(100%); }
     to { transform: none; }
   }
+}
+
+/* Valore dentro una riga di lista raggruppata: allineato a destra, senza riquadro */
+.row-input {
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  text-align: right;
+  font-size: 15px;
+  color: var(--color-fg);
+}
+.row-input::placeholder { color: var(--color-subtle); }
+.row-input[aria-invalid="true"] { color: var(--color-alert); }
+input[type="date"].row-input, input[type="time"].row-input { width: auto; flex: none; }
+input[type="date"].row-input::-webkit-date-and-time-value, input[type="time"].row-input::-webkit-date-and-time-value { text-align: right; }
+@media (max-width: 767px) { .row-input { font-size: 16px; } }
+
+/* Pulsante a comparsa (pop-up button) per i filtri della toolbar */
+.pill-select {
+  height: 32px;
+  border-radius: 8px;
+  background-color: var(--t-fill);
+  padding: 0 1.75rem 0 0.75rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-fg);
+  appearance: none;
+  border: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2.5'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
 }

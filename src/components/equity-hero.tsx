@@ -101,7 +101,7 @@ export function EquityHero({ curve, capital, currency }: { curve: Point[]; capit
             <CartesianGrid stroke="var(--t-grid)" strokeWidth={0.5} vertical={false} />
             <XAxis dataKey="index" {...AXIS} minTickGap={56} tickFormatter={(i) => { const p = points.find((x) => x.index === i); return p ? dayLabel(p.date) : ""; }} />
             <YAxis orientation="right" domain={[min - pad, max + pad]} tickCount={4} width={56} {...AXIS} tickFormatter={(v) => Number(v).toLocaleString("it-IT", { notation: "compact", maximumFractionDigits: 1 })} />
-            <ReferenceLine y={base} stroke="var(--t-subtle)" strokeWidth={1} label={{ value: range === "ALL" ? "Inizio" : "Base", position: "insideTopLeft", fill: "var(--t-muted)", fontSize: 11 }} />
+            <ReferenceLine y={base} stroke="var(--t-subtle)" strokeWidth={1} label={{ value: range === "ALL" ? "Inizio" : "Base", position: "insideBottomRight", fill: "var(--t-muted)", fontSize: 11 }} />
             <Tooltip content={() => null} cursor={{ stroke: "var(--t-subtle)", strokeWidth: 1 }} isAnimationActive={false} />
             <Area
               type="linear"

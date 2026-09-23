@@ -18,9 +18,9 @@ import {
 
 // Colori dai token CSS: seguono tema chiaro/scuro e restano in scala di grigi.
 const FG = "var(--t-fg)";
-const LOSS = "var(--t-loss)";
-const AXIS = { stroke: "var(--t-subtle)", fontSize: 11, tickLine: false, axisLine: false, fontFamily: "var(--font-jetbrains), monospace" } as const;
-const GRID = { stroke: "var(--t-grid)", vertical: false } as const;
+const LOSS = "var(--t-muted)";
+const AXIS = { stroke: "var(--t-muted)", fontSize: 11, tickLine: false, axisLine: false } as const;
+const GRID = { stroke: "var(--t-grid)", strokeWidth: 0.5, vertical: false } as const;
 const TOOLTIP = {
   contentStyle: { background: "var(--t-surface-2)", border: "1px solid var(--t-line-strong)", borderRadius: 8, fontSize: 12 },
   labelStyle: { color: "var(--t-muted)" },
@@ -40,11 +40,11 @@ export function CotNetChart({ data }: { data: { date: string; specNet: number; c
         <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid {...GRID} />
           <XAxis dataKey="date" tickFormatter={shortDate} minTickGap={48} {...AXIS} />
-          <YAxis tickFormatter={compact} width={52} {...AXIS} />
-          <ReferenceLine y={0} stroke="var(--t-line-strong)" />
+          <YAxis orientation="right" tickCount={5} tickFormatter={compact} width={48} {...AXIS} />
+          <ReferenceLine y={0} stroke="var(--t-muted)" />
           <Tooltip {...TOOLTIP} labelFormatter={(d) => shortDate(String(d))} formatter={(v, n) => [it(v), n === "specNet" ? "Speculativi" : "Commercial"]} />
-          <Line type="monotone" dataKey="commNet" stroke="var(--t-subtle)" strokeDasharray="3 3" strokeWidth={1.25} dot={false} isAnimationActive={false} />
-          <Line type="monotone" dataKey="specNet" stroke={FG} strokeWidth={2} dot={false} isAnimationActive={false} />
+          <Line type="linear" dataKey="commNet" stroke="var(--t-muted)" strokeWidth={1.25} dot={false} isAnimationActive={false} />
+          <Line type="linear" dataKey="specNet" stroke={FG} strokeWidth={2} dot={false} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -75,20 +75,25 @@ export function EquityChart({ data, capital }: { data: { index: number; equity: 
 }
 
 /** Barre verdi o rosse. `negative` forza il colore quando il valore e' un conteggio (sempre positivo). */
+/**
+ * Barre verdi/rosse sostituite dal monocromo: guadagni pieni, perdite a contorno sotto lo zero.
+ * `negative` forza lo stile di perdita quando il valore è un conteggio (sempre positivo).
+ */
 export function PnlBars({ data, height = 240, label = "Valore" }: { data: { key: string; value: number; negative?: boolean }[]; height?: number; label?: string }) {
   return (
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer>
-        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <BarChart data={data} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
           <CartesianGrid {...GRID} />
-          <XAxis dataKey="key" {...AXIS} interval={data.length <= 8 ? 0 : "preserveStartEnd"} minTickGap={8} tickFormatter={(k) => String(k).replace(".", ",")} />
-          <YAxis tickFormatter={compact} width={52} {...AXIS} />
-          <ReferenceLine y={0} stroke="var(--t-line-strong)" />
+          <XAxis dataKey="key" {...AXIS} interval={data.length <= 8 ? 0 : "preserveStartEnd"} minTickGap={8} tickFormatter={(k) => String(k).replace(".", ",").replace(/^-/, "\u2212")} />
+          <YAxis orientation="right" tickCount={4} tickFormatter={compact} width={44} {...AXIS} />
+          <ReferenceLine y={0} stroke="var(--t-muted)" strokeWidth={1} />
           <Tooltip {...TOOLTIP} cursor={{ fill: "var(--t-grid)" }} formatter={(v) => [it(v, Number.isInteger(Number(v)) ? 0 : 2), label]} />
-          <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
-            {data.map((d) => (
-              <Cell key={d.key} fill={(d.negative ?? d.value < 0) ? LOSS : FG} />
-            ))}
+          <Bar dataKey="value" maxBarSize={28} radius={[4, 4, 4, 4]} isAnimationActive={false}>
+            {data.map((d) => {
+              const loss = d.negative ?? d.value < 0;
+              return <Cell key={d.key} fill={loss ? "transparent" : FG} fillOpacity={loss ? 1 : 0.9} stroke={loss ? FG : "none"} strokeWidth={loss ? 1.25 : 0} />;
+            })}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -104,7 +109,7 @@ export function SimulationChart({ paths, start }: { paths: number[][]; start: nu
         <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid {...GRID} />
           <XAxis dataKey="i" {...AXIS} minTickGap={32} />
-          <YAxis tickFormatter={compact} width={52} {...AXIS} />
+          <YAxis orientation="right" tickFormatter={compact} width={48} {...AXIS} />
           <ReferenceLine y={start} stroke="var(--t-line-strong)" strokeDasharray="4 4" />
           {paths.map((_, k) => (
             <Line key={k} dataKey={`p${k}`} stroke={FG} strokeOpacity={0.25} strokeWidth={1} dot={false} isAnimationActive={false} />

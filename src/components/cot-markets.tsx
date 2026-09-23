@@ -56,7 +56,7 @@ export function CotMarkets({ rows }: { rows: CotRowView[] }) {
     <div className="flex flex-col gap-10">
       {mine.length > 0 && (
         <section>
-          <h2 className="mb-3 text-sm font-medium text-muted">Your markets <span className="font-normal text-subtle">· dagli strumenti del journal</span></h2>
+          <h2 className="mb-2 text-[20px] font-bold">Your markets <span className="text-[15px] font-normal text-muted">dagli strumenti del journal</span></h2>
           <CotTable markets={mine} />
         </section>
       )}
@@ -64,7 +64,7 @@ export function CotMarkets({ rows }: { rows: CotRowView[] }) {
         const list = rows.filter((r) => r.market.group === g && !mineKeys.has(r.market.key));
         return list.length ? (
           <section key={g}>
-            <h2 className="mb-3 text-sm font-medium text-muted">{label}</h2>
+            <h2 className="mb-2 text-[20px] font-bold">{label}</h2>
             <CotTable markets={list} />
           </section>
         ) : null;

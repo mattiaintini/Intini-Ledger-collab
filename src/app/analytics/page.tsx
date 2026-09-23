@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { WithJournal } from "@/components/onboarding";
 import { PnlBars } from "@/components/charts";
+import { Timer } from "lucide-react";
 import { Card, CardTitle, Empty, PageHeader, Stat } from "@/components/ui";
 import { computeStats, enrich, type Breakdown } from "@/lib/journal/stats";
 import { SESSION_LABEL, TYPE_LABEL, type Currency, type Journal, type Session, type TradeType } from "@/lib/journal/types";
@@ -52,17 +53,17 @@ function Heatmap({ trades, capital, currency }: { trades: Journal["trades"]; cap
   const max = Math.max(1, ...[...cells.values()].map((c) => Math.abs(c.pnl)));
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[420px] border-separate border-spacing-1 text-xs">
+      <table className="w-full min-w-[420px] border-separate border-spacing-[3px] text-[13px]">
         <thead>
           <tr className="text-subtle">
             <th />
-            {SESS.map((s) => <th key={s} className="label pb-1 font-normal">{SESSION_LABEL[s]}</th>)}
+            {SESS.map((s) => <th key={s} className="pb-1 text-[13px] font-medium text-muted">{SESSION_LABEL[s]}</th>)}
           </tr>
         </thead>
         <tbody>
           {DAYS_HM.map((d, i) => (
             <tr key={d}>
-              <td className="label pr-2 text-subtle">{d}</td>
+              <td className="pr-2 text-[13px] font-medium text-muted">{d}</td>
               {SESS.map((s) => {
                 const c = cells.get(`${i}|${s}`);
                 const a = c ? Math.abs(c.pnl) / max : 0;
@@ -70,10 +71,10 @@ function Heatmap({ trades, capital, currency }: { trades: Journal["trades"]; cap
                   <td
                     key={s}
                     title={c ? `${c.n} trade` : "nessun trade"}
-                    className={`num h-10 rounded-[6px] text-center ${c ? (c.pnl >= 0 ? "border border-fg/20" : "border border-dashed border-line-strong") : "border border-line text-subtle"}`}
-                    style={c && c.pnl > 0 ? { background: `color-mix(in srgb, var(--t-fg) ${Math.round(6 + a * 40)}%, transparent)` } : undefined}
+                    className="num h-9 rounded-[6px] text-center text-[13px]"
+                    style={c && c.pnl > 0 ? { background: `color-mix(in srgb, var(--t-fg) ${Math.round(8 + a * 72)}%, transparent)`, color: a > 0.5 ? "var(--t-bg)" : "var(--t-fg)", fontWeight: 600 } : { background: "var(--t-surface-2)" }}
                   >
-                    {c ? <span className={tone(c.pnl)}>{money(c.pnl, currency, { sign: true })}</span> : "·"}
+                    {c ? <span className={c.pnl < 0 ? "text-muted" : ""}>{money(c.pnl, currency, { sign: true })}</span> : <span className="text-subtle">·</span>}
                   </td>
                 );
               })}
@@ -114,7 +115,7 @@ function Analytics({ journal }: { journal: Journal }) {
     <>
       <PageHeader
         title="Analytics"
-        description="Tutte le metriche sono calcolate dai trade registrati. Win rate su vinti e persi, break even esclusi. R calcolato sul capitale prima di ogni trade."
+        description="Dai trade registrati. Win rate su vinti e persi, break even esclusi."
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
@@ -156,24 +157,17 @@ function Analytics({ journal }: { journal: Journal }) {
 
       <Card className="mt-4 md:mt-6">
         <CardTitle>Execution quality</CardTitle>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div>
-            <p className="text-xs text-muted">MAE medio</p>
-            <p className="num mt-1 text-xl">{s.excursion.avgMaeR === null ? "n/d" : `${num(s.excursion.avgMaeR, 2)}R`}</p>
-            <p className="text-xs text-subtle">su {s.excursion.withMae} trade</p>
+        {s.excursion.withMae + s.excursion.withMfe + s.excursion.withDuration === 0 ? (
+          <Empty title="Nessun dato di esecuzione" icon={Timer}>
+            MAE, MFE e durata compaiono quando li inserisci nel trade, alla voce Esecuzione. Non vengono mai stimati.
+          </Empty>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Stat label="MAE medio" value={s.excursion.avgMaeR === null ? "n/d" : num(s.excursion.avgMaeR, 2)} unit="R" hint={`su ${s.excursion.withMae} trade`} />
+            <Stat label="MFE medio" value={s.excursion.avgMfeR === null ? "n/d" : num(s.excursion.avgMfeR, 2)} unit="R" hint={`su ${s.excursion.withMfe} trade`} />
+            <Stat label="Durata media" value={s.excursion.avgDurationMin === null ? "n/d" : num(s.excursion.avgDurationMin)} unit="min" hint={`su ${s.excursion.withDuration} trade`} />
           </div>
-          <div>
-            <p className="text-xs text-muted">MFE medio</p>
-            <p className="num mt-1 text-xl">{s.excursion.avgMfeR === null ? "n/d" : `${num(s.excursion.avgMfeR, 2)}R`}</p>
-            <p className="text-xs text-subtle">su {s.excursion.withMfe} trade</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted">Durata media</p>
-            <p className="num mt-1 text-xl">{s.excursion.avgDurationMin === null ? "n/d" : `${num(s.excursion.avgDurationMin)} min`}</p>
-            <p className="text-xs text-subtle">su {s.excursion.withDuration} trade</p>
-          </div>
-        </div>
-        <p className="mt-4 text-xs text-subtle">Calcolati solo sui trade in cui hai inserito MAE, MFE e durata. La versione precedente li generava a caso: sono stati rimossi.</p>
+        )}
       </Card>
     </>
   );

@@ -7,3 +7,4 @@
 5. [ ] G4 modifica trade in place
 6. [ ] G2 e2e nel repo (dipende da 3 e 5)
 7. [ ] G3 verify:cot live finale
+8. [ ] G8 verificatore indipendente (numeri) + proponente UX, correzioni con regressione

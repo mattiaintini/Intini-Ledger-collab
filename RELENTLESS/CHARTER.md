@@ -21,6 +21,11 @@ possono correggere dentro l'app.
    e confronto `skip`; con API irraggiungibile la generazione fallisce (nessun dato non verificato).
    Coperto da unit test con fetch simulato.
 
+8. **Verificatori e proponenti** (preferenza di Mattia, memoria feedback_agenti_verificatori_proponenti):
+   un agente verificatore indipendente ricalcola da zero, dalle fonti CFTC e a mano, i numeri COT e le
+   statistiche del journal e li confronta con l'output dell'app; un agente proponente fa QA UX sull'app
+   funzionante. Ogni problema reale trovato si corregge con un test di regressione.
+
 ## Verification Gate
 `npm run gate && npm run e2e && npm run verify:cot`
 

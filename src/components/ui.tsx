@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import { cloneElement, isValidElement, useId, type ComponentProps, type ReactNode } from "react";
 import type { CheckStatus } from "@/lib/cot/verify";
 
 export function PageHeader({ title, description, actions }: { title: string; description?: ReactNode; actions?: ReactNode }) {
@@ -57,14 +57,30 @@ export function ButtonLink({ variant = "ghost", className = "", ...rest }: Compo
   return <Link className={`${btn} ${variants[variant]} ${className}`} {...rest} />;
 }
 
-export function Field({ label, error, hint, children }: { label: string; error?: string; hint?: string; children: ReactNode }) {
+/**
+ * Etichetta collegata al controllo con htmlFor/id: il nome accessibile e' esattamente `label`.
+ * Errore e suggerimento sono collegati con aria-describedby. Per un gruppo di pulsanti usare `group`.
+ */
+export function Field({ label, error, hint, group, children }: { label: string; error?: string; hint?: string; group?: boolean; children: ReactNode }) {
+  const id = useId();
+  const msgId = `${id}-msg`;
+  const msg = error ?? hint;
+  const control = isValidElement<{ id?: string; "aria-describedby"?: string }>(children)
+    ? cloneElement(children, { id: children.props.id ?? id, "aria-describedby": msg ? msgId : undefined })
+    : children;
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="flex flex-col gap-1.5">
-        <span className="text-xs text-muted">{label}</span>
-        {children}
-      </label>
-      {error ? <span className="text-xs text-neg" role="alert">{error}</span> : hint ? <span className="text-xs text-subtle">{hint}</span> : null}
+    <div className="flex flex-col gap-1.5" role={group ? "group" : undefined} aria-labelledby={group ? `${id}-label` : undefined}>
+      {group ? (
+        <span id={`${id}-label`} className="text-xs text-muted">{label}</span>
+      ) : (
+        <label htmlFor={id} className="text-xs text-muted">{label}</label>
+      )}
+      {control}
+      {msg && (
+        <span id={msgId} className={`text-xs ${error ? "text-neg" : "text-subtle"}`} role={error ? "alert" : undefined}>
+          {msg}
+        </span>
+      )}
     </div>
   );
 }

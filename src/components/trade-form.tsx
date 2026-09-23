@@ -146,7 +146,7 @@ export function TradeForm({ journal, onSaved }: { journal: Journal; onSaved?: ()
         <Field label="Strumento" error={errors.asset}>
           <input className="field uppercase" placeholder="XAUUSD" value={d.asset} onChange={(e) => set("asset", e.target.value)} aria-invalid={!!errors.asset} autoComplete="off" />
         </Field>
-        <Field label="Direzione">
+        <Field label="Direzione" group>
           <div className="grid grid-cols-2 rounded-[var(--radius-ui)] border border-line p-0.5">
             {(["LONG", "SHORT"] as const).map((dir) => (
               <button

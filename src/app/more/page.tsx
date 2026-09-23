@@ -1,22 +1,20 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { SECONDARY_NAV } from "@/components/nav";
-import { PageHeader } from "@/components/ui";
+import { Group, PageHeader } from "@/components/ui";
 
 export default function MorePage() {
   return (
     <>
-      <PageHeader title="More" />
-      <ul className="divide-y divide-line rounded-[var(--radius-card)] border border-line bg-surface">
-        {[...SECONDARY_NAV, { href: "/cot/verification", label: "Data verification" }].map((n) => (
-          <li key={n.href}>
-            <Link href={n.href} className="flex items-center justify-between px-4 py-4 text-sm">
-              {n.label}
-              <ChevronRight size={16} className="text-subtle" />
-            </Link>
-          </li>
+      <PageHeader title="Altro" />
+      <Group>
+        {[...SECONDARY_NAV, { href: "/cot/verification", label: "Data verification", icon: null }].map((n) => (
+          <Link key={n.href} href={n.href} className="flex min-h-11 items-center justify-between px-4 text-[15px] active:bg-surface-3">
+            {n.label}
+            <ChevronRight size={16} className="text-subtle" />
+          </Link>
         ))}
-      </ul>
+      </Group>
     </>
   );
 }

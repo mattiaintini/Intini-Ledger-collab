@@ -5,10 +5,13 @@ const ISO: Record<Currency, string> = { "€": "EUR", $: "USD", "£": "GBP" };
 // In it-IT Intl raggruppa le migliaia solo da 5 cifre: "1729" accanto a "11.729" si legge male.
 const GROUP = { useGrouping: "always" } as unknown as Intl.NumberFormatOptions;
 
+/** Segno meno tipografico (U+2212) al posto del trattino, come nelle app Apple. */
+const minus = (s: string) => s.replace(/^-|(?<=\s)-/, "\u2212");
+
 export function money(n: number | null | undefined, currency: Currency, opts: { sign?: boolean } = {}) {
   if (n === null || n === undefined || !Number.isFinite(n)) return "n/d";
   const s = new Intl.NumberFormat("it-IT", { ...GROUP, style: "currency", currency: ISO[currency], minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
-  return opts.sign && n > 0 ? `+${s}` : s;
+  return minus(opts.sign && n > 0 ? `+${s}` : s);
 }
 
 export function num(n: number | null | undefined, digits = 0, opts: { sign?: boolean } = {}) {
@@ -16,7 +19,7 @@ export function num(n: number | null | undefined, digits = 0, opts: { sign?: boo
   if (n === Infinity) return "∞";
   if (!Number.isFinite(n)) return "n/d";
   const s = n.toLocaleString("it-IT", { ...GROUP, minimumFractionDigits: digits, maximumFractionDigits: digits });
-  return opts.sign && n > 0 ? `+${s}` : s;
+  return minus(opts.sign && n > 0 ? `+${s}` : s);
 }
 
 export function pct(n: number | null | undefined, digits = 1, opts: { sign?: boolean } = {}) {
@@ -39,7 +42,7 @@ export const tone = (n: number | null | undefined) =>
  * ("10.000" = 10000), come si scrivono gli importi in italiano. Stringa vuota o non numerica = NaN.
  */
 export function parseNum(input: string, opts: { money?: boolean } = {}): number {
-  const s = input.trim().replace(/\s/g, "");
+  const s = input.trim().replace(/\s/g, "").replace(/\u2212/g, "-");
   if (!/^[+-]?[\d.,]+$/.test(s) || !/\d/.test(s)) return NaN;
   const lastDot = s.lastIndexOf(".");
   const lastComma = s.lastIndexOf(",");

@@ -2,8 +2,8 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { useJournal } from "@/lib/journal/store";
-import { readPrefs, savePrefs, type Look, type Prefs, type Theme } from "@/lib/prefs";
-import { Button, Card, CardTitle, Field } from "./ui";
+import { readPrefs, savePrefs, type Prefs, type ThemePref } from "@/lib/prefs";
+import { Button, Card, CardTitle, Field, Group, Segmented } from "./ui";
 
 // preferenze lette dal browser; sul server valgono quelle di default
 let listeners: (() => void)[] = [];
@@ -13,39 +13,28 @@ const subscribe = (l: () => void) => {
   return () => (listeners = listeners.filter((x) => x !== l));
 };
 const snapshot = () => (cached ??= readPrefs());
-const serverSnapshot = (): Prefs => ({ theme: "dark", look: "terminal" });
+const serverSnapshot = (): Prefs => ({ theme: "system" });
 const update = (p: Prefs) => {
   cached = p;
   savePrefs(p);
   listeners.forEach((l) => l());
 };
 
-function Segmented<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: [T, string][]; onChange: (v: T) => void }) {
-  return (
-    <div role="group" aria-label={label} className="flex flex-col gap-1.5">
-      <span className="text-xs text-muted">{label}</span>
-      <div className="grid grid-cols-2 rounded-[var(--radius-ui)] border border-line p-0.5">
-        {options.map(([v, l]) => (
-          <button key={v} type="button" aria-pressed={value === v} onClick={() => onChange(v)} className={`rounded-[6px] py-2 text-sm ${value === v ? "bg-surface-3 text-fg" : "text-muted"}`}>
-            {l}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
+const THEMES = [
+  ["system", "Automatico"],
+  ["light", "Chiaro"],
+  ["dark", "Scuro"],
+] as const;
 
 export function AppearanceCard() {
   const prefs = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
   return (
-    <Card>
-      <CardTitle>Appearance</CardTitle>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Segmented<Theme> label="Tema" value={prefs.theme} options={[["dark", "Scuro"], ["light", "Chiaro"]]} onChange={(theme) => update({ ...prefs, theme })} />
-        <Segmented<Look> label="Stile" value={prefs.look} options={[["terminal", "Terminal"], ["clean", "Clean"]]} onChange={(look) => update({ ...prefs, look })} />
+    <Group header="Aspetto" footer="Automatico segue il tema del Mac o dell'iPhone. Vale per questo dispositivo.">
+      <div className="flex min-h-11 items-center justify-between gap-4 px-4 py-1.5">
+        <span className="text-[15px]">Tema</span>
+        <Segmented<ThemePref> label="Tema" value={prefs.theme} options={THEMES} onChange={(theme) => update({ ...prefs, theme })} size="sm" />
       </div>
-      <p className="mt-3 text-xs text-subtle">Solo bianco, nero e grigi. Terminal: numeri ed etichette in monospace, come la v8. Vale per questo dispositivo.</p>
-    </Card>
+    </Group>
   );
 }
 

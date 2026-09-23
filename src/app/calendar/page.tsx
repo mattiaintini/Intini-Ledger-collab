@@ -11,7 +11,7 @@ function CalendarView({ journal }: { journal: Journal }) {
   const { daily } = useMemo(() => computeStats(journal.trades, journal.profile.capital), [journal]);
   return (
     <>
-      <PageHeader title="Calendar" description="P&L giornaliero chiuso, per data del trade. Riquadro pieno: giornata positiva; tratteggiato: negativa." />
+      <PageHeader title="Calendar" description="P&L giornaliero chiuso, per data del trade." />
       <Card>
         <MonthGrid daily={daily} currency={journal.profile.currency} />
       </Card>

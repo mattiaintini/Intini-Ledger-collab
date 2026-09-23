@@ -4,7 +4,9 @@ import { inputNum, money, num, parseNum } from "./format";
 describe("formattazione", () => {
   it("separatore delle migliaia anche a 4 cifre", () => {
     expect(money(1729.21, "€", { sign: true }).replace(/\s/g, " ")).toBe("+1.729,21 €");
-    expect(num(-4142)).toBe("-4.142");
+    expect(num(-4142)).toBe("\u22124.142");
+    expect(money(-120, "€").replace(/\s/g, " ")).toBe("\u2212120,00 €");
+    expect(parseNum("\u2212120,50")).toBe(-120.5);
     expect(num(15623, 0, { sign: true })).toBe("+15.623");
     expect(num(Infinity)).toBe("∞");
   });

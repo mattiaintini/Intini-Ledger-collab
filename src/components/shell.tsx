@@ -8,12 +8,13 @@ import { Ellipsis, Lock } from "lucide-react";
 import { NAV } from "./nav";
 import { useJournal } from "@/lib/journal/store";
 
-// Barra mobile: le 4 sezioni d'uso quotidiano, il resto sotto "More".
-const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], NAV[4], { href: "/more", label: "More", icon: Ellipsis }];
+// Barra mobile: le 4 sezioni d'uso quotidiano, il resto sotto "Altro".
+const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], NAV[4], { href: "/more", label: "Altro", icon: Ellipsis }] as const;
+const SECTIONS = ["Trading", "Markets", "Altro"] as const;
 
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
 
-function Logo({ size = 32 }: { size?: number }) {
+function Logo({ size = 28 }: { size?: number }) {
   return (
     <>
       <Image src="/logo-mi-white.png" alt="Mattia Intini" width={size} height={size} priority className="logo-dark" />
@@ -22,17 +23,26 @@ function Logo({ size = 32 }: { size?: number }) {
   );
 }
 
-function UserBox() {
-  const { journal, lock, hasPassword } = useJournal();
-  if (!journal) return null;
+function LockButton({ className = "" }: { className?: string }) {
+  const { lock, hasPassword, journal } = useJournal();
+  if (!hasPassword || !journal) return null;
   return (
-    <div className="flex items-center gap-3">
-      {journal.profile.name && <span className="label text-fg">{journal.profile.name}</span>}
-      {hasPassword && (
-        <button onClick={lock} aria-label="Blocca il journal" title="Blocca" className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted hover:border-line-strong hover:text-fg">
-          <Lock size={14} />
-        </button>
-      )}
+    <button onClick={lock} aria-label="Blocca il journal" title="Blocca" className={`flex h-8 w-8 items-center justify-center rounded-full text-muted active:bg-surface-3 ${className}`}>
+      <Lock size={16} strokeWidth={1.75} />
+    </button>
+  );
+}
+
+function ProfileFooter() {
+  const { journal } = useJournal();
+  const name = journal?.profile.name;
+  return (
+    <div className="mt-auto flex items-center justify-between gap-2 px-2">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-3 text-[12px] font-semibold uppercase">{name ? name[0] : "·"}</span>
+        <span className="truncate text-[13px] font-medium">{name || "Journal"}</span>
+      </div>
+      <LockButton />
     </div>
   );
 }
@@ -43,61 +53,60 @@ export function Shell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh md:flex">
-      {/* Desktop: sidebar fissa */}
-      <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r border-line bg-bg px-3 py-5 md:flex">
-        <Link href="/" className="flex items-center gap-3 px-2">
+      {/* Mac: sidebar in materiale, sezioni, profilo in fondo */}
+      <aside className="material sticky top-0 hidden h-dvh w-[232px] shrink-0 flex-col px-3 pb-4 pt-5 md:flex">
+        <Link href="/" className="mb-5 flex items-center gap-2.5 px-2">
           <Logo />
-          <span className="leading-tight">
-            <span className="block text-sm font-semibold tracking-[0.02em]">INTINI</span>
-            <span className="block text-xs text-muted">Journal Suite</span>
-          </span>
+          <span className="text-[15px] font-semibold">Journal Suite</span>
         </Link>
-        <nav className="mt-8 flex flex-col gap-0.5">
-          {NAV.map(({ href, label, icon: Icon }) => {
-            const active = isActive(path, href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-3 rounded-[var(--radius-ui)] border px-3 py-2.5 ${
-                  active ? "border-line-strong bg-surface-2 text-fg" : "border-transparent text-muted hover:text-fg"
-                }`}
-              >
-                <Icon size={16} strokeWidth={1.75} />
-                <span className="label">{label}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex flex-col gap-4">
+          {SECTIONS.map((sec) => (
+            <div key={sec}>
+              <p className="mb-1 px-2 text-[11px] font-semibold text-subtle">{sec}</p>
+              <div className="flex flex-col gap-px">
+                {NAV.filter((n) => n.section === sec).map(({ href, label, icon: Icon }) => {
+                  const active = isActive(path, href);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      aria-current={active ? "page" : undefined}
+                      className={`flex h-8 items-center gap-2.5 rounded-[6px] px-2 text-[13px] ${active ? "bg-surface-3 font-semibold text-fg" : "font-medium text-fg/85"}`}
+                    >
+                      <Icon size={16} strokeWidth={1.75} className={active ? "text-fg" : "text-muted"} />
+                      {label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
-        <p className="mt-auto px-3 text-[11px] leading-snug text-subtle">v10 · dati salvati solo in questo browser</p>
+        <ProfileFooter />
       </aside>
 
       <div className="min-w-0 flex-1">
-        {/* Barra in alto: titolo e utente (desktop), logo e utente (mobile) */}
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-bg/85 px-4 backdrop-blur-md md:px-8">
-          <Link href="/" className="flex items-center gap-2.5 md:hidden">
-            <Logo size={28} />
-            <span className="text-sm font-semibold">INTINI</span>
+        {/* iPhone: barra in materiale con logo e blocco */}
+        <header className="material sticky top-0 z-20 flex h-11 items-center justify-between border-b-[0.5px] border-line px-4 pt-[env(safe-area-inset-top)] md:hidden">
+          <Link href="/" className="flex items-center gap-2">
+            <Logo size={24} />
+            <span className="text-[15px] font-semibold">Journal Suite</span>
           </Link>
-          <p className="hidden text-sm md:block">
-            <span className="font-semibold tracking-[0.04em]">INTINI</span> <span className="text-muted">JOURNAL SUITE</span>
-          </p>
-          <UserBox />
+          <LockButton />
         </header>
 
-        <main className="px-4 pb-28 pt-5 md:px-8 md:pb-12 md:pt-6">
-          <div className="mx-auto max-w-[1560px]">{children}</div>
+        <main className="px-4 pb-[calc(49px+env(safe-area-inset-bottom)+24px)] pt-5 md:px-10 md:pb-16 md:pt-9">
+          <div className="mx-auto max-w-[1200px]">{children}</div>
         </main>
       </div>
 
-      {/* Mobile: tab bar in basso */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-line bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
+      {/* iPhone: tab bar 49pt in materiale */}
+      <nav className="material fixed inset-x-0 bottom-0 z-20 grid h-[calc(49px+env(safe-area-inset-bottom))] grid-cols-5 border-t-[0.5px] border-line pb-[env(safe-area-inset-bottom)] md:hidden">
         {MOBILE_NAV.map(({ href, label, icon: Icon }) => {
           const active = href === "/more" ? moreActive : isActive(path, href);
           return (
-            <Link key={href} href={href} className={`flex flex-col items-center gap-1 py-2.5 text-[11px] ${active ? "text-fg" : "text-subtle"}`}>
-              <Icon size={20} strokeWidth={active ? 2.25 : 1.75} />
+            <Link key={href} href={href} className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium ${active ? "text-fg" : "text-subtle"}`}>
+              <Icon size={24} strokeWidth={active ? 2 : 1.6} />
               {label === "COT Report" ? "COT" : label}
             </Link>
           );

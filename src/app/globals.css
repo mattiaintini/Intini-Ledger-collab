@@ -1,87 +1,132 @@
 @import "tailwindcss";
 
-/* Strumento interno: solo nero, bianco e grigi (feedback di Mattia sui tool personali).
-   Unici colori ammessi: ambra per gli avvisi, rosso per gli errori bloccanti. */
+/* Linguaggio visivo Apple (HIG), solo scala di grigi: colori di sistema, profondità da superfici
+   più chiare invece che da ombre, materiali solo su barre e sidebar.
+   Unici colori: ambra per gli avvisi, rosso per gli errori bloccanti. */
 @theme {
   --color-bg: var(--t-bg);
   --color-surface: var(--t-surface);
   --color-surface-2: var(--t-surface-2);
-  --color-surface-3: var(--t-surface-3);
+  --color-surface-3: var(--t-fill);
   --color-fg: var(--t-fg);
   --color-muted: var(--t-muted);
   --color-subtle: var(--t-subtle);
   --color-line: var(--t-line);
   --color-line-strong: var(--t-line-strong);
-  /* azione principale: pieno col colore del testo */
   --color-accent: var(--t-fg);
   --color-accent-hover: var(--t-muted);
-  /* P&L: guadagni pieni, perdite in grigio col segno meno */
+  /* P&L: guadagni pieni, perdite in grigio col segno meno tipografico */
   --color-pos: var(--t-fg);
-  --color-neg: var(--t-loss);
-  --color-warn: #f5a524;
-  --color-alert: #ff453a;
+  --color-neg: var(--t-muted);
+  --color-warn: var(--t-amber);
+  --color-alert: var(--t-red);
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, var(--font-inter), "Helvetica Neue", sans-serif;
+  --font-rounded: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, var(--font-inter), sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 
-  --radius-ui: 8px;
-  --radius-card: 12px;
+  --radius-ui: 10px;
+  --radius-card: 14px;
+
+  --ease-smooth: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-snappy: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-:root {
-  --t-bg: #000000;
-  --t-surface: #0a0a0a;
-  --t-surface-2: #111113;
-  --t-surface-3: #1d1d1f;
-  --t-fg: #ffffff;
-  --t-muted: #a1a1aa;
-  --t-subtle: #71717a;
-  --t-loss: #8e8e96;
-  --t-line: rgba(255, 255, 255, 0.09);
-  --t-line-strong: rgba(255, 255, 255, 0.18);
-  --t-grid: rgba(255, 255, 255, 0.06);
-  color-scheme: dark;
-}
-
+/* Chiaro: pagina grigia raggruppata, card bianche (come Salute e Impostazioni) */
+:root,
 :root[data-theme="light"] {
-  --t-bg: #ffffff;
-  --t-surface: #fafafa;
-  --t-surface-2: #f4f4f5;
-  --t-surface-3: #e4e4e7;
+  --t-bg: #f2f2f7;
+  --t-surface: #ffffff;
+  --t-surface-2: #f2f2f7;
+  --t-fill: rgba(118, 118, 128, 0.12);
+  --t-fill-2: rgba(120, 120, 128, 0.16);
   --t-fg: #000000;
-  --t-muted: #52525b;
-  --t-subtle: #71717a;
-  --t-loss: #71717a;
-  --t-line: rgba(0, 0, 0, 0.09);
-  --t-line-strong: rgba(0, 0, 0, 0.2);
-  --t-grid: rgba(0, 0, 0, 0.06);
+  --t-muted: rgba(60, 60, 67, 0.6);
+  --t-subtle: rgba(60, 60, 67, 0.3);
+  --t-line: rgba(60, 60, 67, 0.18);
+  --t-line-strong: rgba(60, 60, 67, 0.29);
+  --t-grid: rgba(60, 60, 67, 0.12);
+  --t-thumb: #ffffff;
+  --t-bar: rgba(242, 242, 247, 0.78);
+  --t-red: #ff3b30;
+  --t-amber: #ff9500;
   color-scheme: light;
+}
+
+/* Scuro: nero puro, superfici elevate #1C1C1E e #2C2C2E */
+:root[data-theme="dark"] {
+  --t-bg: #000000;
+  --t-surface: #1c1c1e;
+  --t-surface-2: #2c2c2e;
+  --t-fill: rgba(118, 118, 128, 0.24);
+  --t-fill-2: rgba(120, 120, 128, 0.32);
+  --t-fg: #ffffff;
+  --t-muted: rgba(235, 235, 245, 0.6);
+  --t-subtle: rgba(235, 235, 245, 0.3);
+  --t-line: rgba(84, 84, 88, 0.6);
+  --t-line-strong: #38383a;
+  --t-grid: rgba(84, 84, 88, 0.45);
+  --t-thumb: #636366;
+  --t-bar: rgba(22, 22, 24, 0.72);
+  --t-red: #ff453a;
+  --t-amber: #ff9f0a;
+  color-scheme: dark;
 }
 
 html {
   background: var(--color-bg);
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-fg);
   font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.33;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Etichette dei pannelli. Look "terminal" (come la v8): mono, maiuscolo, spaziato. Look "clean": frase normale. */
+/* Tracking manuale solo sul fallback Inter: SF ha il suo tracking ottico */
+@supports not (font: -apple-system-body) {
+  body { letter-spacing: -0.011em; }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-fg);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Etichette di sezione: frase normale, peso 600, secondario */
 .label {
   font-size: 0.8125rem;
-  font-weight: 500;
-}
-:root[data-look="terminal"] .label {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: -0.005em;
 }
-:root[data-look="terminal"] .num {
+
+/* Numeri grandi dei riquadri, stile Salute/Fitness */
+.rounded-num {
+  font-family: var(--font-rounded);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* Barre in materiale: sfocatura sopra il contenuto */
+.material {
+  background: var(--t-bar);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 150ms !important;
+    animation: none !important;
+  }
+}
+
+.num {
   font-family: var(--font-mono);
   letter-spacing: -0.01em;
 }
@@ -93,23 +138,28 @@ body {
 /* Campi form coerenti con il brand */
 .field {
   width: 100%;
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
+  min-height: 36px;
+  background: var(--t-fill);
+  border: 0;
   border-radius: var(--radius-ui);
-  padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 15px;
   color: var(--color-fg);
   outline: none;
-  transition: border-color 150ms;
+  transition: box-shadow 150ms var(--ease-snappy);
 }
 .field:focus {
-  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-fg);
 }
 .field[aria-invalid="true"] {
-  border-color: var(--color-neg);
+  box-shadow: 0 0 0 1.5px var(--color-alert);
 }
 .field::placeholder {
   color: var(--color-subtle);
+}
+/* iPhone: sotto i 16px Safari ingrandisce la pagina al focus */
+@media (max-width: 767px) {
+  .field { font-size: 16px; min-height: 44px; }
 }
 input[type="date"].field::-webkit-calendar-picker-indicator,
 input[type="time"].field::-webkit-calendar-picker-indicator {
@@ -117,7 +167,7 @@ input[type="time"].field::-webkit-calendar-picker-indicator {
 }
 select.field {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
   padding-right: 1.625rem;
@@ -132,3 +182,18 @@ select.field {
 .logo-light { display: none; }
 :root[data-theme="light"] .logo-dark { display: none; }
 :root[data-theme="light"] .logo-light { display: block; }
+
+/* Foglio modale: sale dal basso su iPhone, compare centrato su Mac */
+dialog.sheet[open] {
+  animation: sheet-in 450ms var(--ease-smooth);
+}
+@keyframes sheet-in {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (max-width: 767px) {
+  @keyframes sheet-in {
+    from { transform: translateY(100%); }
+    to { transform: none; }
+  }
+}

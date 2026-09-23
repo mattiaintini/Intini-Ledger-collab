@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { WithJournal, MigrationSummary } from "@/components/onboarding";
 import { Button, Card, CardTitle, Field, PageHeader, StatusBadge } from "@/components/ui";
@@ -17,7 +18,7 @@ function ProfileForm({ journal }: { journal: Journal }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const save = (e: React.FormEvent) => {
     e.preventDefault();
-    const capital = parseNum(f.capital);
+    const capital = parseNum(f.capital, { money: true });
     const max = parseNum(f.max);
     if (!(capital > 0)) return setMsg({ ok: false, text: "Capitale iniziale maggiore di zero" });
     if (!(max > 0 && max <= 100)) return setMsg({ ok: false, text: "Perdita giornaliera tra 0 e 100%" });
@@ -66,12 +67,13 @@ function DataCheck({ journal }: { journal: Journal }) {
           {[...errors, ...warnings].map((i, k) => (
             <li key={k} className="flex flex-col gap-0.5 py-2 md:flex-row md:gap-4">
               <span className="num w-40 shrink-0 text-muted">{dateIT(i.date)} · {i.asset}</span>
-              <span className={i.level === "error" ? "text-neg" : "text-warn"}>{i.message}</span>
+              <span className={`flex-1 ${i.level === "error" ? "text-neg" : "text-warn"}`}>{i.message}</span>
+              <Link href={`/journal/${encodeURIComponent(i.tradeId)}`} className="text-muted underline underline-offset-4">Correggi</Link>
             </li>
           ))}
         </ul>
       )}
-      {errors.length > 0 && <p className="mt-3 text-xs text-subtle">Per correggere un errore elimina il trade dal Journal e registralo di nuovo con i dati giusti.</p>}
+      
     </Card>
   );
 }

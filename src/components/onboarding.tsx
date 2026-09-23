@@ -30,7 +30,7 @@ function Onboarding() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cap = parseNum(capital);
+    const cap = parseNum(capital, { money: true });
     if (!Number.isFinite(cap) || cap <= 0) return setError("Capitale iniziale maggiore di zero");
     createProfile({ ...DEFAULT_PROFILE, name: name.trim(), capital: cap, currency });
   };

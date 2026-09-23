@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { useJournal } from "@/lib/journal/store";
@@ -68,6 +69,7 @@ export function TradeList({ trades, currency, compact = false }: { trades: Enric
                 {!compact && (
                   <td className="whitespace-nowrap px-3 py-2.5 text-right text-xs">
                     {t.image && <button className="mr-3 text-muted underline-offset-4 hover:underline" onClick={() => setImg(t.image!)}>Immagine</button>}
+                    <Link href={`/journal/${encodeURIComponent(t.id)}`} className="mr-3 text-muted underline-offset-4 hover:underline">Modifica</Link>
                     <button className={confirmId === t.id ? "text-neg" : "text-subtle hover:text-fg"} onClick={() => remove(t.id)}>
                       {confirmId === t.id ? "Conferma" : "Elimina"}
                     </button>
@@ -92,6 +94,7 @@ export function TradeList({ trades, currency, compact = false }: { trades: Enric
               {!compact && (
                 <p className="flex gap-3">
                   {t.image && <button onClick={() => setImg(t.image!)}>Immagine</button>}
+                  <Link href={`/journal/${encodeURIComponent(t.id)}`}>Modifica</Link>
                   <button className={confirmId === t.id ? "text-neg" : ""} onClick={() => remove(t.id)}>{confirmId === t.id ? "Conferma" : "Elimina"}</button>
                 </p>
               )}

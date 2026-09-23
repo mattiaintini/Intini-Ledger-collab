@@ -16,6 +16,7 @@ import {
   type Journal,
   type Outcome,
   type Session,
+  type Trade,
   type TradeType,
 } from "@/lib/journal/types";
 import { inputNum, money, parseNum } from "@/lib/format";
@@ -74,17 +75,38 @@ const empty = (): Draft => ({
 
 const optional = (s: string) => (s.trim() === "" ? undefined : parseNum(s));
 
-export function TradeForm({ journal, onSaved }: { journal: Journal; onSaved?: () => void }) {
-  const { addTrade } = useJournal();
-  const [d, setD] = useState<Draft>(empty);
-  const [pnlTouched, setPnlTouched] = useState(false);
-  const [image, setImage] = useState<string | undefined>();
+const fromTrade = (t: Trade): Draft => ({
+  date: t.date,
+  time: t.time,
+  asset: t.asset,
+  session: t.session,
+  type: t.type,
+  direction: t.direction,
+  lots: String(t.lots).replace(".", ","),
+  riskPct: String(t.riskPct).replace(".", ","),
+  rr: String(t.rr).replace(".", ","),
+  grade: t.grade,
+  outcome: t.outcome,
+  pnl: inputNum(t.pnl),
+  notes: t.notes,
+  maeR: t.maeR === undefined ? "" : String(t.maeR).replace(".", ","),
+  mfeR: t.mfeR === undefined ? "" : String(t.mfeR).replace(".", ","),
+  durationMin: t.durationMin === undefined ? "" : String(t.durationMin),
+});
+
+/** Nuovo trade, oppure modifica di `initial` con le stesse regole di validazione. */
+export function TradeForm({ journal, initial, onSaved }: { journal: Journal; initial?: Trade; onSaved?: () => void }) {
+  const { addTrade, updateTrade } = useJournal();
+  const [d, setD] = useState<Draft>(() => (initial ? fromTrade(initial) : empty()));
+  // in modifica il P&L registrato resta quello scritto, non viene ricalcolato dal piano
+  const [pnlTouched, setPnlTouched] = useState(!!initial);
+  const [image, setImage] = useState<string | undefined>(initial?.image);
   const [submitted, setSubmitted] = useState(false);
   const [confirmWarnings, setConfirmWarnings] = useState(false);
   const [saved, setSaved] = useState(false);
   const cur = journal.profile.currency;
 
-  const ctx = useMemo(() => contextFor(journal, { date: d.date, time: d.time }), [journal, d.date, d.time]);
+  const ctx = useMemo(() => contextFor(journal, { date: d.date, time: d.time }, initial?.id), [journal, d.date, d.time, initial?.id]);
   const riskAmount = (ctx.equityBefore * (parseNum(d.riskPct) || 0)) / 100;
   const suggested = d.outcome ? plannedPnl(d.outcome, riskAmount, parseNum(d.rr) || 0) : null;
 
@@ -100,7 +122,7 @@ export function TradeForm({ journal, onSaved }: { journal: Journal; onSaved?: ()
     rr: parseNum(d.rr),
     grade: d.grade,
     outcome: (d.outcome || "X") as Outcome,
-    pnl: pnlTouched ? parseNum(d.pnl) : (suggested ?? NaN),
+    pnl: pnlTouched ? parseNum(d.pnl, { money: true }) : (suggested ?? NaN),
     notes: d.notes,
     image,
     maeR: optional(d.maeR),
@@ -121,6 +143,13 @@ export function TradeForm({ journal, onSaved }: { journal: Journal; onSaved?: ()
     setSubmitted(true);
     if (Object.keys(v.errors).length) return;
     if (v.warnings.length && !confirmWarnings) return setConfirmWarnings(true);
+    if (initial) {
+      updateTrade(initial.id, input);
+      setSubmitted(false);
+      setConfirmWarnings(false);
+      onSaved?.();
+      return;
+    }
     addTrade(input);
     setD({ ...empty(), date: d.date, session: d.session, type: d.type, riskPct: d.riskPct, rr: d.rr });
     setPnlTouched(false);
@@ -268,7 +297,7 @@ export function TradeForm({ journal, onSaved }: { journal: Journal; onSaved?: ()
         </div>
       )}
 
-      <Button type="submit" variant="primary">{confirmWarnings ? "Salva comunque" : "Registra trade"}</Button>
+      <Button type="submit" variant="primary">{confirmWarnings ? "Salva comunque" : initial ? "Salva modifiche" : "Registra trade"}</Button>
       {saved && <p className="text-sm text-pos">Trade registrato.</p>}
     </form>
   );

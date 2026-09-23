@@ -42,7 +42,7 @@ export interface Stats {
   net: number;
   equity: number;
   returnPct: number;
-  /** Vinti / (vinti + persi). I break even sono esclusi. */
+  /** Vinti / (vinti + persi). I break even (esito BE o P&L zero) sono esclusi. */
   winRate: number | null;
   grossProfit: number;
   grossLoss: number;
@@ -54,7 +54,9 @@ export interface Stats {
   expectancy: number | null;
   avgR: number | null;
   tradesWithR: number;
+  /** Massimo calo dal picco in valuta. */
   maxDrawdown: number;
+  /** Massimo calo dal picco in percentuale del picco (può non coincidere con il massimo in valuta). */
   maxDrawdownPct: number;
   maxWinStreak: number;
   maxLossStreak: number;
@@ -71,6 +73,12 @@ export interface Stats {
   excursion: { avgMaeR: number | null; avgMfeR: number | null; avgDurationMin: number | null; withMae: number; withMfe: number; withDuration: number };
 }
 
+/**
+ * Esito del trade per le statistiche. Il break even è quello dichiarato dal trader (esito BE),
+ * anche con qualche euro di commissioni o slippage; altrimenti decide il segno del P&L.
+ */
+export const resultOf = (t: Trade): "win" | "loss" | "be" => (t.outcome === "BE" || t.pnl === 0 ? "be" : t.pnl > 0 ? "win" : "loss");
+
 const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 
 const WEEKDAYS = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
@@ -82,8 +90,8 @@ function breakdown(trades: Trade[], keyOf: (t: Trade) => string, order?: string[
     groups.set(k, [...(groups.get(k) ?? []), t]);
   }
   const rows = [...groups].map(([key, ts]) => {
-    const w = ts.filter((t) => t.pnl > 0).length;
-    const l = ts.filter((t) => t.pnl < 0).length;
+    const w = ts.filter((t) => resultOf(t) === "win").length;
+    const l = ts.filter((t) => resultOf(t) === "loss").length;
     return { key, trades: ts.length, net: ts.reduce((a, t) => a + t.pnl, 0), winRate: w + l ? (w / (w + l)) * 100 : null };
   });
   return order ? rows.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key)) : rows.sort((a, b) => b.net - a.net);
@@ -91,10 +99,11 @@ function breakdown(trades: Trade[], keyOf: (t: Trade) => string, order?: string[
 
 export function computeStats(trades: Trade[], capital: number): Stats {
   const list = enrich(trades, capital);
-  const wins = list.filter((t) => t.pnl > 0);
-  const losses = list.filter((t) => t.pnl < 0);
-  const grossProfit = wins.reduce((a, t) => a + t.pnl, 0);
-  const grossLoss = losses.reduce((a, t) => a + t.pnl, 0);
+  const wins = list.filter((t) => resultOf(t) === "win");
+  const losses = list.filter((t) => resultOf(t) === "loss");
+  // Profitto e perdita lordi in denaro: includono anche i piccoli P&L dei break even.
+  const grossProfit = list.filter((t) => t.pnl > 0).reduce((a, t) => a + t.pnl, 0);
+  const grossLoss = list.filter((t) => t.pnl < 0).reduce((a, t) => a + t.pnl, 0);
   const net = grossProfit + grossLoss;
 
   let peak = capital;
@@ -110,14 +119,14 @@ export function computeStats(trades: Trade[], capital: number): Stats {
   list.forEach((t, i) => {
     peak = Math.max(peak, t.equityAfter);
     const dd = peak - t.equityAfter;
-    if (dd > maxDrawdown) {
-      maxDrawdown = dd;
-      maxDrawdownPct = peak > 0 ? (dd / peak) * 100 : 0;
-    }
-    if (t.pnl > 0) {
+    // massimo in denaro e massimo in percentuale si tracciano separatamente: possono cadere in punti diversi
+    maxDrawdown = Math.max(maxDrawdown, dd);
+    if (peak > 0) maxDrawdownPct = Math.max(maxDrawdownPct, (dd / peak) * 100);
+    const res = resultOf(t);
+    if (res === "win") {
       winStreak++;
       lossStreak = 0;
-    } else if (t.pnl < 0) {
+    } else if (res === "loss") {
       lossStreak++;
       winStreak = 0;
     }

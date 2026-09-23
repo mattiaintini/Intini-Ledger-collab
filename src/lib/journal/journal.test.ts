@@ -224,3 +224,49 @@ describe("backup JSON", () => {
     expect(parseBackup(JSON.stringify(dup))).toHaveProperty("error");
   });
 });
+
+describe("regressioni dal verificatore indipendente", () => {
+  it("drawdown % = massimo calo percentuale, non la % del massimo calo in valuta", () => {
+    // 1000 -> 500 (-50%), poi 10.500 -> 9.500 (-9,52% ma -1000 in valuta)
+    const s = computeStats([tr("2026-01-01", -500), tr("2026-01-02", 10_000), tr("2026-01-03", -1000), tr("2026-01-04", 0)], 1000);
+    expect(s.maxDrawdown).toBe(1000);
+    expect(s.maxDrawdownPct).toBe(50);
+  });
+
+  it("break even dichiarato con qualche euro di P&L resta break even", () => {
+    const list = [
+      tr("2026-02-01", 100),
+      tr("2026-02-02", 0),
+      tr("2026-02-03", 80),
+      tr("2026-02-04", -3, { outcome: "BE" }),
+      tr("2026-02-05", 90),
+      tr("2026-02-06", -100),
+      tr("2026-02-07", -100),
+      tr("2026-02-08", 5, { outcome: "BE" }),
+      tr("2026-02-09", -100),
+    ];
+    const s = computeStats(list, 10_000);
+    expect(s.breakeven).toBe(3);
+    expect(s.wins).toBe(3);
+    expect(s.losses).toBe(3);
+    expect(s.maxWinStreak).toBe(3); // il BE a -3 non interrompe la serie
+    expect(s.maxLossStreak).toBe(3); // né quello a +5
+    // i soldi dei BE restano nel netto e nei lordi
+    expect(s.net).toBe(100 + 80 - 3 + 90 - 300 + 5);
+    expect(s.grossProfit).toBe(275);
+    expect(s.avgWin).toBe(90);
+  });
+
+  it("contesto in modifica: stessa data e ora, conta l'ordine di inserimento", () => {
+    const x = tr("2026-03-01", -100, { time: "09:30", createdAt: 1, id: "x" });
+    const y = tr("2026-03-01", -150, { time: "09:30", createdAt: 2, id: "y" });
+    const journal: Journal = { version: 9, profile: { name: "", capital: 10_000, currency: "€", maxDailyLossPct: 2 }, trades: [y, x] };
+    const cx = contextFor(journal, { date: "2026-03-01", time: "09:30" }, "x");
+    expect(cx.equityBefore).toBe(10_000);
+    expect(cx.dayPnlBefore).toBe(0);
+    const cy = contextFor(journal, { date: "2026-03-01", time: "09:30" }, "y");
+    expect(cy.equityBefore).toBe(9_900);
+    // un trade nuovo alla stessa ora va dopo entrambi
+    expect(contextFor(journal, { date: "2026-03-01", time: "09:30" }).equityBefore).toBe(9_750);
+  });
+});

@@ -6,14 +6,17 @@ import { Button, Card, CardTitle, Field, PageHeader, Stat } from "@/components/u
 import { useJournal } from "@/lib/journal/store";
 import { computeStats } from "@/lib/journal/stats";
 import { monteCarlo, type MonteCarloResult } from "@/lib/montecarlo";
-import { num, parseNum as n, pct } from "@/lib/format";
+import { num, parseNum, pct } from "@/lib/format";
+
+const n = (s: string) => parseNum(s);
+const money = (s: string) => parseNum(s, { money: true });
 
 function PositionSize({ capital }: { capital: number }) {
   const [cap, setCap] = useState(String(Math.round(capital)));
   const [risk, setRisk] = useState("1");
   const [stop, setStop] = useState("20");
   const [pipValue, setPipValue] = useState("10");
-  const riskAmount = (n(cap) * n(risk)) / 100;
+  const riskAmount = (money(cap) * n(risk)) / 100;
   const lots = n(stop) > 0 && n(pipValue) > 0 ? riskAmount / (n(stop) * n(pipValue)) : NaN;
   return (
     <Card>
@@ -38,7 +41,7 @@ function Simulator({ prefill }: { prefill: { start: number; winRate: number; rr:
   const [res, setRes] = useState<MonteCarloResult | null>(null);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
   const run = () =>
-    setRes(monteCarlo({ start: n(f.start), winRate: n(f.winRate) / 100, rr: n(f.rr), riskPct: n(f.risk), trades: Math.min(1000, Math.round(n(f.trades))), runs: 2000, ddThresholdPct: n(f.dd) }));
+    setRes(monteCarlo({ start: money(f.start), winRate: n(f.winRate) / 100, rr: n(f.rr), riskPct: n(f.risk), trades: Math.min(1000, Math.round(n(f.trades))), runs: 2000, ddThresholdPct: n(f.dd) }));
   const valid = [f.start, f.winRate, f.rr, f.risk, f.trades, f.dd].every((v) => Number.isFinite(n(v)) && n(v) > 0) && n(f.winRate) <= 100;
 
   return (
@@ -66,7 +69,7 @@ function Simulator({ prefill }: { prefill: { start: number; winRate: number; rr:
             <Stat label={`DD oltre ${f.dd}%`} value={pct(res.probDd * 100)} hint={`Chiude in perdita: ${pct(res.probLoss * 100)}`} />
           </div>
           <div className="mt-6">
-            <SimulationChart paths={res.paths} start={n(f.start)} />
+            <SimulationChart paths={res.paths} start={money(f.start)} />
           </div>
         </>
       )}

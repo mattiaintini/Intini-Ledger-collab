@@ -32,9 +32,10 @@ export const tone = (n: number | null | undefined) =>
 /**
  * Numero scritto a mano, in formato italiano o inglese: "1.234,56", "1234,56", "1234.56", "-0,5".
  * Con entrambi i separatori l'ultimo e' il decimale. Con un solo punto e' un decimale (0.5 lotti),
- * con piu' punti sono migliaia. Stringa vuota o non numerica = NaN.
+ * con piu' punti sono migliaia. Con `money` un solo punto seguito da 3 cifre e' un separatore delle migliaia
+ * ("10.000" = 10000), come si scrivono gli importi in italiano. Stringa vuota o non numerica = NaN.
  */
-export function parseNum(input: string): number {
+export function parseNum(input: string, opts: { money?: boolean } = {}): number {
   const s = input.trim().replace(/\s/g, "");
   if (!/^[+-]?[\d.,]+$/.test(s) || !/\d/.test(s)) return NaN;
   const lastDot = s.lastIndexOf(".");
@@ -53,7 +54,9 @@ export function parseNum(input: string): number {
     normalized = parts.join(".");
   } else {
     const parts = s.split(".");
-    normalized = parts.length > 2 ? parts.join("") : s;
+    // Importi scritti all'italiana: "10.000" sono diecimila, non dieci. Lotti e percentuali restano decimali.
+    const italianThousands = opts.money && parts.length === 2 && /^[+-]?[1-9]\d{0,2}$/.test(parts[0]) && /^\d{3}$/.test(parts[1]);
+    normalized = parts.length > 2 || italianThousands ? parts.join("") : s;
   }
   const n = Number(normalized);
   return Number.isFinite(n) ? n : NaN;

@@ -19,6 +19,8 @@ interface JournalContext {
   createProfile: (p: Profile) => void;
   updateProfile: (p: Partial<Profile>) => void;
   addTrade: (t: Omit<Trade, "id" | "createdAt">) => void;
+  /** Sostituisce i dati di un trade esistente mantenendo id e ordine di inserimento. */
+  updateTrade: (id: string, t: Omit<Trade, "id" | "createdAt">) => void;
   deleteTrade: (id: string) => void;
   importLegacy: (user: string) => MigrationReport;
   replaceJournal: (j: Journal) => void;
@@ -98,6 +100,8 @@ export function JournalProvider({ children }: { children: ReactNode }) {
       createProfile: (profile) => persist({ version: 9, profile, trades: [] }),
       updateProfile: (p) => journal && persist({ ...journal, profile: { ...journal.profile, ...p } }),
       addTrade: (t) => journal && persist({ ...journal, trades: [...journal.trades, { ...t, id: newId(), createdAt: Date.now() }] }),
+      updateTrade: (id, t) =>
+        journal && persist({ ...journal, trades: journal.trades.map((o) => (o.id === id ? { ...t, id, createdAt: o.createdAt } : o)) }),
       deleteTrade: (id) => journal && persist({ ...journal, trades: journal.trades.filter((t) => t.id !== id) }),
       importLegacy: (user) => {
         const raw = readLegacyRaw();

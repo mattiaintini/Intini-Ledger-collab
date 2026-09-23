@@ -1,4 +1,4 @@
-import { enrich } from "./stats";
+import { enrich, tradeOrder } from "./stats";
 import { DIRECTIONS, GRADES, OUTCOMES, SESSIONS, TRADE_TYPES, type Journal, type Trade } from "./types";
 
 // Verifica dei dati del journal.
@@ -85,10 +85,16 @@ export function validateTrade(
   return { errors, warnings };
 }
 
-/** Contesto di validazione per un trade nuovo, calcolato dal journal esistente. */
+/**
+ * Contesto di validazione calcolato dal journal esistente, con lo stesso ordine delle statistiche
+ * (data, ora, ordine di inserimento). Un trade nuovo va dopo quelli con la stessa data e ora;
+ * un trade in modifica (`excludeId`) mantiene la sua posizione.
+ */
 export function contextFor(journal: Journal, t: Pick<Trade, "date" | "time">, excludeId?: string) {
   const others = journal.trades.filter((o) => o.id !== excludeId);
-  const before = others.filter((o) => o.date < t.date || (o.date === t.date && (o.time || "") <= (t.time || "")));
+  const original = excludeId ? journal.trades.find((o) => o.id === excludeId) : undefined;
+  const probe = { ...t, createdAt: original?.createdAt ?? Infinity } as Trade;
+  const before = others.filter((o) => tradeOrder(o, probe) < 0);
   const equityBefore = journal.profile.capital + before.reduce((a, o) => a + o.pnl, 0);
   const dayPnlBefore = before.filter((o) => o.date === t.date).reduce((a, o) => a + o.pnl, 0);
   return { equityBefore, dayPnlBefore, others, maxDailyLossPct: journal.profile.maxDailyLossPct };

@@ -13,7 +13,7 @@ export function IndexBar({ value }: { value: number | null }) {
       <div className="relative h-1.5 w-16 rounded-full bg-surface-3">
         <div className="absolute inset-y-0 left-[20%] right-[20%] border-x border-line-strong" />
         <div
-          className={`absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${extreme ? "bg-accent" : "bg-fg"}`}
+          className={`absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ${extreme ? "bg-fg ring-2 ring-fg/30" : "bg-muted"}`}
           style={{ left: `${value}%` }}
         />
       </div>

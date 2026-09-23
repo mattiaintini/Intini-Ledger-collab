@@ -42,12 +42,12 @@ export function TradeList({ trades, currency, compact = false, flagged = new Set
             <tr>
               <th className="px-3 py-2 font-normal">Data</th>
               <th className="px-3 py-2 font-normal">Strumento</th>
-              <th className="px-3 py-2 font-normal">Direzione</th>
+              {!compact && <th className="px-3 py-2 font-normal">Direzione</th>}
               {!compact && <th className="px-3 py-2 font-normal">Sessione</th>}
               {!compact && <th className="px-3 py-2 font-normal">Tipo</th>}
               {!compact && <th className="px-3 py-2 text-right font-normal">Rischio</th>}
               <th className="px-3 py-2 font-normal">Esito</th>
-              <th className="px-3 py-2 text-right font-normal">R</th>
+              {!compact && <th className="px-3 py-2 text-right font-normal">R</th>}
               <th className="px-3 py-2 text-right font-normal">P&amp;L</th>
               {!compact && <th className="px-3 py-2 font-normal"><span className="sr-only">Azioni</span></th>}
             </tr>
@@ -55,28 +55,28 @@ export function TradeList({ trades, currency, compact = false, flagged = new Set
           <tbody className="divide-y divide-line">
             {trades.map((t) => (
               <tr key={t.id} className="align-top">
-                <td className="num whitespace-nowrap px-3 py-2.5">{dateIT(t.date)}<span className="ml-2 text-subtle">{t.time}</span></td>
-                <td className="px-3 py-2.5 font-medium">
+                <td className="num whitespace-nowrap px-3 py-2.5">{compact ? dateIT(t.date, { day: "2-digit", month: "short" }) : dateIT(t.date)}<span className="ml-2 text-subtle">{t.time}</span></td>
+                <td className="whitespace-nowrap px-3 py-2.5 font-medium">
                   {t.asset}
                   {flagged.has(t.id) && (
-                    <Link href={`/journal/${encodeURIComponent(t.id)}`} className="ml-2 text-xs font-normal text-neg underline underline-offset-4">
+                    <Link href={`/journal/${encodeURIComponent(t.id)}`} className="ml-2 text-xs font-normal text-alert underline underline-offset-4">
                       da correggere
                     </Link>
                   )}
                   {!compact && t.notes && <p className="max-w-64 truncate text-xs font-normal text-subtle" title={t.notes}>{t.notes}</p>}
                 </td>
-                <td className="px-3 py-2.5 text-muted">{t.direction === "LONG" ? "Long" : "Short"}</td>
+                {!compact && <td className="px-3 py-2.5 text-muted">{t.direction === "LONG" ? "Long" : "Short"}</td>}
                 {!compact && <td className="px-3 py-2.5 text-muted">{SESSION_LABEL[t.session]}</td>}
                 {!compact && <td className="px-3 py-2.5 text-muted">{TYPE_LABEL[t.type]} · {t.grade}</td>}
                 {!compact && <td className="num px-3 py-2.5 text-right text-muted">{num(t.riskPct, 2)}%</td>}
-                <td className="px-3 py-2.5 text-muted">{OUTCOME_LABEL[t.outcome]}</td>
-                <td className={`num px-3 py-2.5 text-right ${tone(t.r)}`}>{t.r === null ? "n/d" : num(t.r, 2, { sign: true })}</td>
-                <td className={`num px-3 py-2.5 text-right font-medium ${tone(t.pnl)}`}>{money(t.pnl, currency, { sign: true })}</td>
+                <td className="whitespace-nowrap px-3 py-2.5 text-muted">{compact ? `${t.direction === "LONG" ? "L" : "S"} · ${t.outcome}` : OUTCOME_LABEL[t.outcome]}</td>
+                {!compact && <td className={`num px-3 py-2.5 text-right ${tone(t.r)}`}>{t.r === null ? "n/d" : num(t.r, 2, { sign: true })}</td>}
+                <td className={`num whitespace-nowrap px-3 py-2.5 text-right font-medium ${tone(t.pnl)}`}>{money(t.pnl, currency, { sign: true })}</td>
                 {!compact && (
                   <td className="whitespace-nowrap px-3 py-2.5 text-right text-xs">
                     {t.image && <button className="mr-3 text-muted underline-offset-4 hover:underline" onClick={() => setImg(t.image!)}>Immagine</button>}
                     <Link href={`/journal/${encodeURIComponent(t.id)}`} className="mr-3 text-muted underline-offset-4 hover:underline">Modifica</Link>
-                    <button className={confirmId === t.id ? "text-neg" : "text-subtle hover:text-fg"} onClick={() => remove(t.id)}>
+                    <button className={confirmId === t.id ? "text-alert" : "text-subtle hover:text-fg"} onClick={() => remove(t.id)}>
                       {confirmId === t.id ? "Conferma" : "Elimina"}
                     </button>
                   </td>
@@ -95,7 +95,7 @@ export function TradeList({ trades, currency, compact = false, flagged = new Set
               <p className="font-medium">
                 {t.asset} <span className="text-sm font-normal text-muted">{t.direction === "LONG" ? "Long" : "Short"}</span>
                 {flagged.has(t.id) && (
-                  <Link href={`/journal/${encodeURIComponent(t.id)}`} className="ml-2 text-xs font-normal text-neg underline underline-offset-4">
+                  <Link href={`/journal/${encodeURIComponent(t.id)}`} className="ml-2 text-xs font-normal text-alert underline underline-offset-4">
                     da correggere
                   </Link>
                 )}
@@ -108,7 +108,7 @@ export function TradeList({ trades, currency, compact = false, flagged = new Set
                 <p className="flex gap-3">
                   {t.image && <button onClick={() => setImg(t.image!)}>Immagine</button>}
                   <Link href={`/journal/${encodeURIComponent(t.id)}`}>Modifica</Link>
-                  <button className={confirmId === t.id ? "text-neg" : ""} onClick={() => remove(t.id)}>{confirmId === t.id ? "Conferma" : "Elimina"}</button>
+                  <button className={confirmId === t.id ? "text-alert" : ""} onClick={() => remove(t.id)}>{confirmId === t.id ? "Conferma" : "Elimina"}</button>
                 </p>
               )}
             </div>

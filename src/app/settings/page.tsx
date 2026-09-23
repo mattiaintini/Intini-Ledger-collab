@@ -11,6 +11,7 @@ import { download, tradesToCsv } from "@/lib/journal/csv";
 import { CURRENCIES, type Currency, type Journal } from "@/lib/journal/types";
 import type { MigrationReport } from "@/lib/journal/migrate";
 import { dateIT, parseNum } from "@/lib/format";
+import { AppearanceCard, SecurityCard } from "@/components/settings-extra";
 
 function ProfileForm({ journal }: { journal: Journal }) {
   const { updateProfile } = useJournal();
@@ -43,7 +44,7 @@ function ProfileForm({ journal }: { journal: Journal }) {
         </Field>
         <div className="flex items-center gap-3 sm:col-span-2">
           <Button type="submit" variant="solid">Salva</Button>
-          {msg && <span className={`text-sm ${msg.ok ? "text-pos" : "text-neg"}`}>{msg.text}</span>}
+          {msg && <span className={`text-sm ${msg.ok ? "text-pos" : "text-alert"}`}>{msg.text}</span>}
         </div>
       </form>
     </Card>
@@ -68,7 +69,7 @@ function DataCheck({ journal }: { journal: Journal }) {
           {[...errors, ...warnings].map((i, k) => (
             <li key={k} className="flex flex-col gap-0.5 py-2 md:flex-row md:gap-4">
               <span className="num w-40 shrink-0 text-muted">{dateIT(i.date)} · {i.asset}</span>
-              <span className={`flex-1 ${i.level === "error" ? "text-neg" : "text-warn"}`}>{i.message}</span>
+              <span className={`flex-1 ${i.level === "error" ? "text-alert" : "text-warn"}`}>{i.message}</span>
               <Link href={`/journal/${encodeURIComponent(i.tradeId)}`} className="text-muted underline underline-offset-4">Correggi</Link>
             </li>
           ))}
@@ -113,7 +114,7 @@ function DataManagement({ journal }: { journal: Journal }) {
           <input type="file" accept="application/json,.json" className="hidden" onChange={(e) => e.target.files?.[0] && restore(e.target.files[0])} />
         </label>
       </div>
-      {msg && <p className={`mt-3 text-sm ${msg.ok ? "text-pos" : "text-neg"}`}>{msg.text}</p>}
+      {msg && <p className={`mt-3 text-sm ${msg.ok ? "text-pos" : "text-alert"}`}>{msg.text}</p>}
 
       {legacyUsers.length > 0 && (
         <div className="mt-6 border-t border-line pt-5">
@@ -155,6 +156,10 @@ export default function SettingsPage() {
           <PageHeader title="Settings" />
           <div className="flex flex-col gap-4 md:gap-6">
             <ProfileForm journal={j} />
+            <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+              <AppearanceCard />
+              <SecurityCard />
+            </div>
             <DataCheck journal={j} />
             <DataManagement journal={j} />
           </div>

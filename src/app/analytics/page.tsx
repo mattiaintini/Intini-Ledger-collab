@@ -36,6 +36,55 @@ function BreakdownTable({ title, rows, currency, label = (k) => k }: { title: st
   );
 }
 
+const DAYS_HM = ["Lun", "Mar", "Mer", "Gio", "Ven"];
+const SESS: Session[] = ["ASIA", "LDN", "NY"];
+
+/** Heatmap giorno x sessione in scala di grigi: intensità = |P&L| relativo al massimo, tratteggio = negativo. */
+function Heatmap({ trades, capital, currency }: { trades: Journal["trades"]; capital: number; currency: Currency }) {
+  const cells = new Map<string, { pnl: number; n: number }>();
+  for (const t of enrich(trades, capital)) {
+    const dow = (new Date(`${t.date}T12:00:00Z`).getUTCDay() + 6) % 7;
+    if (dow > 4) continue;
+    const k = `${dow}|${t.session}`;
+    const c = cells.get(k) ?? { pnl: 0, n: 0 };
+    cells.set(k, { pnl: c.pnl + t.pnl, n: c.n + 1 });
+  }
+  const max = Math.max(1, ...[...cells.values()].map((c) => Math.abs(c.pnl)));
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[420px] border-separate border-spacing-1 text-xs">
+        <thead>
+          <tr className="text-subtle">
+            <th />
+            {SESS.map((s) => <th key={s} className="label pb-1 font-normal">{SESSION_LABEL[s]}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {DAYS_HM.map((d, i) => (
+            <tr key={d}>
+              <td className="label pr-2 text-subtle">{d}</td>
+              {SESS.map((s) => {
+                const c = cells.get(`${i}|${s}`);
+                const a = c ? Math.abs(c.pnl) / max : 0;
+                return (
+                  <td
+                    key={s}
+                    title={c ? `${c.n} trade` : "nessun trade"}
+                    className={`num h-10 rounded-[6px] text-center ${c ? (c.pnl >= 0 ? "border border-fg/20" : "border border-dashed border-line-strong") : "border border-line text-subtle"}`}
+                    style={c && c.pnl > 0 ? { background: `color-mix(in srgb, var(--t-fg) ${Math.round(6 + a * 40)}%, transparent)` } : undefined}
+                  >
+                    {c ? <span className={tone(c.pnl)}>{money(c.pnl, currency, { sign: true })}</span> : "·"}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 /** Distribuzione dei risultati in R, a intervalli di mezzo R. */
 function rHistogram(rs: number[]) {
   if (!rs.length) return [];
@@ -89,6 +138,11 @@ function Analytics({ journal }: { journal: Journal }) {
           <PnlBars data={s.byWeekday.map((b) => ({ key: b.key.slice(0, 3), value: b.net }))} label="P&L" />
         </Card>
       </div>
+
+      <Card className="mt-4 md:mt-6">
+        <CardTitle aside="P&L per giorno e sessione, lun-ven">Profitability heatmap</CardTitle>
+        <Heatmap trades={journal.trades} capital={journal.profile.capital} currency={cur} />
+      </Card>
 
       <div className="mt-4 grid gap-4 md:mt-6 md:grid-cols-2 lg:grid-cols-3">
         <BreakdownTable title="By session" rows={s.bySession} currency={cur} label={(k) => SESSION_LABEL[k as Session]} />

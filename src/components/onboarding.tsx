@@ -13,7 +13,7 @@ export function MigrationSummary({ report }: { report: MigrationReport }) {
       <p>{report.imported} trade importati{report.rejected.length ? `, ${report.rejected.length} scartati` : ""}.</p>
       {[...report.rejected.map((r) => r.reason), ...report.corrections].length > 0 && (
         <ul className="mt-2 list-disc pl-5 text-muted">
-          {report.rejected.map((r) => <li key={`r${r.index}`} className="text-neg">{r.reason}</li>)}
+          {report.rejected.map((r) => <li key={`r${r.index}`} className="text-alert">{r.reason}</li>)}
           {report.corrections.map((c) => <li key={c}>{c}</li>)}
         </ul>
       )}
@@ -78,14 +78,56 @@ function Onboarding() {
   );
 }
 
-/** Mostra il contenuto solo quando esiste un journal, altrimenti l'onboarding. */
+function LockScreen() {
+  const { unlock } = useJournal();
+  const [via, setVia] = useState<"password" | "recovery">("password");
+  const [secret, setSecret] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const ok = await unlock(secret, via);
+    setBusy(false);
+    if (!ok) setError(via === "password" ? "Password errata" : "Recovery key errata");
+  };
+  return (
+    <div className="mx-auto mt-10 max-w-sm md:mt-20">
+      <Card>
+        <h1 className="label text-fg">Journal bloccato</h1>
+        <p className="mt-2 text-sm text-muted">I dati di questo browser sono cifrati. Inserisci {via === "password" ? "la password" : "la recovery key"} per aprirli.</p>
+        <form onSubmit={submit} className="mt-5 flex flex-col gap-4">
+          <Field label={via === "password" ? "Password" : "Recovery key"} error={error ?? undefined}>
+            <input
+              className="field num"
+              type={via === "password" ? "password" : "text"}
+              autoComplete={via === "password" ? "current-password" : "off"}
+              placeholder={via === "recovery" ? "XXXXX-XXXXX-XXXXX-XXXXX" : undefined}
+              value={secret}
+              onChange={(e) => setSecret(e.target.value)}
+              autoFocus
+            />
+          </Field>
+          <Button type="submit" variant="primary" disabled={busy || !secret}>{busy ? "Sblocco in corso" : "Sblocca"}</Button>
+        </form>
+        <button className="mt-4 text-xs text-muted underline underline-offset-4" onClick={() => { setVia(via === "password" ? "recovery" : "password"); setError(null); setSecret(""); }}>
+          {via === "password" ? "Password dimenticata? Usa la recovery key" : "Usa la password"}
+        </button>
+      </Card>
+    </div>
+  );
+}
+
+/** Mostra il contenuto solo quando esiste un journal sbloccato, altrimenti onboarding o blocco. */
 export function WithJournal({ children }: { children: (j: Journal) => ReactNode }) {
   const { status, journal, storageError } = useJournal();
   if (status === "loading") return <div className="h-40" aria-busy="true" />;
+  if (status === "locked") return <LockScreen />;
   if (!journal) return <Onboarding />;
   return (
     <>
-      {storageError && <p className="mb-4 rounded-[var(--radius-ui)] border border-neg/40 p-3 text-sm text-neg">{storageError}</p>}
+      {storageError && <p className="mb-4 rounded-[var(--radius-ui)] border border-alert/40 p-3 text-sm text-alert">{storageError}</p>}
       {children(journal)}
     </>
   );

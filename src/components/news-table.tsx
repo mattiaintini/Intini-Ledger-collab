@@ -89,7 +89,7 @@ export function NewsTable({ events }: { events: MacroEvent[] }) {
                     <span className="font-medium">{e.currency}</span>
                     <span>
                       {e.title}
-                      <span className={`ml-2 text-xs ${e.impact === "High" ? "text-neg" : "text-warn"}`}>{IMPACT_LABEL[e.impact]}</span>
+                      <span className={`ml-2 text-xs ${e.impact === "High" ? "font-semibold text-fg" : "text-subtle"}`}>{IMPACT_LABEL[e.impact]}</span>
                     </span>
                     <span className="num col-start-3 text-xs text-muted md:col-start-auto md:text-right md:text-sm">
                       <span className="md:hidden">Previsto </span>{e.forecast || "n/d"}

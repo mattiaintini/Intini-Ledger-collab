@@ -27,11 +27,11 @@ export default async function CotPage() {
             <p className="text-sm text-muted">
               Report del <span className="text-fg">{dateIT(report.latestReport, { day: "numeric", month: "long", year: "numeric" })}</span>.{" "}
               {summary.weeksChecked.toLocaleString("it-IT")} settimane controllate, {summary.crossChecked.toLocaleString("it-IT")} confrontate col file CFTC,{" "}
-              {summary.weeksFailed === 0 ? "nessuna discrepanza." : <span className="text-neg">{summary.weeksFailed} con discrepanze.</span>}
+              {summary.weeksFailed === 0 ? "nessuna discrepanza." : <span className="text-alert">{summary.weeksFailed} con discrepanze.</span>}
             </p>
           </div>
           {report.missing.length > 0 && (
-            <p className="text-sm text-neg">Nessun dato CFTC per {report.missing.map((m) => m.label).join(", ")}: mercati esclusi.</p>
+            <p className="text-sm text-alert">Nessun dato CFTC per {report.missing.map((m) => m.label).join(", ")}: mercati esclusi.</p>
           )}
           <p className="text-xs text-subtle">
             Aggiornato {new Date(report.generatedAt).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Rome" })}

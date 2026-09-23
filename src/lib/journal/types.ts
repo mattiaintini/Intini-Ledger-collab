@@ -14,6 +14,9 @@ export type Currency = (typeof CURRENCIES)[number];
 
 export const SESSION_LABEL: Record<Session, string> = { ASIA: "Asia", LDN: "Londra", NY: "New York" };
 export const TYPE_LABEL: Record<TradeType, string> = { SCALP: "Scalping", INTRA: "Intraday", SWING: "Swing" };
+/** Etichette corte per campi e tabelle strette. */
+export const TYPE_SHORT: Record<TradeType, string> = { SCALP: "Scalp", INTRA: "Intra", SWING: "Swing" };
+export const SESSION_SHORT: Record<Session, string> = { ASIA: "Asia", LDN: "LDN", NY: "NY" };
 export const OUTCOME_LABEL: Record<Outcome, string> = { TP: "Take profit", SL: "Stop loss", BE: "Break even" };
 
 export interface Trade {

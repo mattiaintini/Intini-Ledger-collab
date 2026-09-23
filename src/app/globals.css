@@ -1,32 +1,64 @@
 @import "tailwindcss";
 
-/* Token dal brand kit mattiaintini.com: dark-first, accento unico clay, bordi a filo. */
+/* Strumento interno: solo nero, bianco e grigi (feedback di Mattia sui tool personali).
+   Unici colori ammessi: ambra per gli avvisi, rosso per gli errori bloccanti. */
 @theme {
-  --color-bg: #000000;
-  --color-surface: #0a0a0a;
-  --color-surface-2: #141416;
-  --color-surface-3: #1d1d1f;
-  --color-fg: #ffffff;
-  --color-muted: #a1a1aa;
-  --color-subtle: #71717a;
-  --color-line: rgba(255, 255, 255, 0.08);
-  --color-line-strong: rgba(255, 255, 255, 0.16);
-  --color-accent: #d97757;
-  --color-accent-hover: #c45d3a;
-  /* Colori semantici solo per numeri di P&L e stati di verifica, mai per la UI. */
-  --color-pos: #5bc08a;
-  --color-neg: #ef5350;
-  --color-warn: #e0b04a;
+  --color-bg: var(--t-bg);
+  --color-surface: var(--t-surface);
+  --color-surface-2: var(--t-surface-2);
+  --color-surface-3: var(--t-surface-3);
+  --color-fg: var(--t-fg);
+  --color-muted: var(--t-muted);
+  --color-subtle: var(--t-subtle);
+  --color-line: var(--t-line);
+  --color-line-strong: var(--t-line-strong);
+  /* azione principale: pieno col colore del testo */
+  --color-accent: var(--t-fg);
+  --color-accent-hover: var(--t-muted);
+  /* P&L: guadagni pieni, perdite in grigio col segno meno */
+  --color-pos: var(--t-fg);
+  --color-neg: var(--t-loss);
+  --color-warn: #f5a524;
+  --color-alert: #ff453a;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --radius-ui: 10px;
-  --radius-card: 16px;
+  --radius-ui: 8px;
+  --radius-card: 12px;
+}
+
+:root {
+  --t-bg: #000000;
+  --t-surface: #0a0a0a;
+  --t-surface-2: #111113;
+  --t-surface-3: #1d1d1f;
+  --t-fg: #ffffff;
+  --t-muted: #a1a1aa;
+  --t-subtle: #71717a;
+  --t-loss: #8e8e96;
+  --t-line: rgba(255, 255, 255, 0.09);
+  --t-line-strong: rgba(255, 255, 255, 0.18);
+  --t-grid: rgba(255, 255, 255, 0.06);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --t-bg: #ffffff;
+  --t-surface: #fafafa;
+  --t-surface-2: #f4f4f5;
+  --t-surface-3: #e4e4e7;
+  --t-fg: #000000;
+  --t-muted: #52525b;
+  --t-subtle: #71717a;
+  --t-loss: #71717a;
+  --t-line: rgba(0, 0, 0, 0.09);
+  --t-line-strong: rgba(0, 0, 0, 0.2);
+  --t-grid: rgba(0, 0, 0, 0.06);
+  color-scheme: light;
 }
 
 html {
-  color-scheme: dark;
   background: var(--color-bg);
 }
 
@@ -35,6 +67,23 @@ body {
   color: var(--color-fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Etichette dei pannelli. Look "terminal" (come la v8): mono, maiuscolo, spaziato. Look "clean": frase normale. */
+.label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+:root[data-look="terminal"] .label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+:root[data-look="terminal"] .num {
+  font-family: var(--font-mono);
+  letter-spacing: -0.01em;
 }
 
 .num {
@@ -78,3 +127,8 @@ select.field {
   scrollbar-width: thin;
   scrollbar-color: var(--color-surface-3) transparent;
 }
+
+/* Logo: bianco sul tema scuro, nero sul chiaro */
+.logo-light { display: none; }
+:root[data-theme="light"] .logo-dark { display: none; }
+:root[data-theme="light"] .logo-light { display: block; }

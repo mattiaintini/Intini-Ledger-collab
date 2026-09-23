@@ -3,7 +3,7 @@ import { dateIT } from "@/lib/format";
 
 const MARK: Record<CheckStatus, { t: string; cls: string; title: string }> = {
   pass: { t: "ok", cls: "text-pos", title: "Controllo superato" },
-  fail: { t: "errore", cls: "text-neg", title: "Controllo fallito" },
+  fail: { t: "errore", cls: "text-alert", title: "Controllo fallito" },
   warn: { t: "avviso", cls: "text-warn", title: "Da controllare" },
   skip: { t: "n/a", cls: "text-subtle", title: "Non verificabile" },
 };
@@ -29,7 +29,7 @@ function Rows({ weeks }: { weeks: WeekVerification[] }) {
           {COLS.map(([k]) => (
             <td key={k} className="px-3 py-2"><Mark s={w[k]} /></td>
           ))}
-          <td className="px-3 py-2 text-xs text-neg">{w.issues.join("; ")}</td>
+          <td className="px-3 py-2 text-xs text-alert">{w.issues.join("; ")}</td>
         </tr>
       ))}
     </>
@@ -60,7 +60,7 @@ export function WeekTable({ weeks }: { weeks: WeekVerification[] }) {
   return (
     <div>
       <p className="text-sm">
-        {weeks.length} settimane controllate, <span className={failed.length ? "text-neg" : ""}>{failed.length} con errori</span>, {crossChecked} confrontate col file CFTC.
+        {weeks.length} settimane controllate, <span className={failed.length ? "text-alert" : ""}>{failed.length} con errori</span>, {crossChecked} confrontate col file CFTC.
       </p>
       {failed.length > 0 && <div className="mt-4">{table(failed)}</div>}
       <details className="mt-3">

@@ -31,8 +31,8 @@ export default function EditTradePage() {
               actions={<ButtonLink href="/journal">Journal</ButtonLink>}
             />
             {issues.length > 0 && (
-              <div className="mb-4 max-w-2xl rounded-[var(--radius-ui)] border border-neg/40 p-3 text-sm">
-                <p className="text-neg">Problemi trovati dal controllo dati</p>
+              <div className="mb-4 max-w-2xl rounded-[var(--radius-ui)] border border-alert/40 p-3 text-sm">
+                <p className="text-alert">Problemi trovati dal controllo dati</p>
                 <ul className="mt-1 list-disc pl-5 text-muted">{issues.map((i) => <li key={i.message}>{i.message}</li>)}</ul>
               </div>
             )}

@@ -25,7 +25,7 @@ export default async function VerificationPage() {
             <li key={s.id} className="flex flex-col gap-1 py-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <Link href={s.url} target="_blank" className="underline-offset-4 hover:underline">{s.label}</Link>
-                {s.error && <p className="text-xs text-neg">{s.error}</p>}
+                {s.error && <p className="text-xs text-alert">{s.error}</p>}
                 {s.note && <p className="text-xs text-subtle">{s.note}</p>}
               </div>
               <div className="flex items-center gap-3">
@@ -40,7 +40,7 @@ export default async function VerificationPage() {
       <Card>
         <CardTitle>Results by market</CardTitle>
         {report.missing.length > 0 && (
-          <p className="mb-4 text-sm text-neg">Nessun dato dall&apos;API CFTC per {report.missing.map((m) => `${m.label} (${m.code})`).join(", ")}.</p>
+          <p className="mb-4 text-sm text-alert">Nessun dato dall&apos;API CFTC per {report.missing.map((m) => `${m.label} (${m.code})`).join(", ")}.</p>
         )}
         <div className="overflow-x-auto scrollbar-thin">
           <table className="w-full min-w-[720px] text-sm">
@@ -62,7 +62,7 @@ export default async function VerificationPage() {
                   <td className="num px-3 py-2">{dateIT(v.freshness.latest)}</td>
                   <td className="num px-3 py-2 text-right">{v.weeks.length}</td>
                   <td className="num px-3 py-2 text-right">{v.weeks.filter((w) => w.source === "pass").length}</td>
-                  <td className={`num px-3 py-2 text-right ${v.counts.fail ? "text-neg" : ""}`}>{v.counts.fail}</td>
+                  <td className={`num px-3 py-2 text-right ${v.counts.fail ? "text-alert" : ""}`}>{v.counts.fail}</td>
                   <td className="px-3 py-2"><StatusBadge status={v.freshness.status} /></td>
                   <td className="px-3 py-2"><StatusBadge status={v.status} /></td>
                 </tr>

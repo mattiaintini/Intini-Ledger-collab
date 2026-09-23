@@ -7,10 +7,10 @@ import {
   GRADES,
   OUTCOME_LABEL,
   OUTCOMES,
-  SESSION_LABEL,
+  SESSION_SHORT,
   SESSIONS,
   TRADE_TYPES,
-  TYPE_LABEL,
+  TYPE_SHORT,
   type Direction,
   type Grade,
   type Journal,
@@ -195,17 +195,17 @@ export function TradeForm({ journal, initial, onSaved }: { journal: Journal; ini
       <div className="grid grid-cols-3 gap-3">
         <Field label="Sessione">
           <select className="field" value={d.session} onChange={(e) => set("session", e.target.value as Session)}>
-            {SESSIONS.map((s) => <option key={s} value={s}>{SESSION_LABEL[s]}</option>)}
+            {SESSIONS.map((s) => <option key={s} value={s}>{SESSION_SHORT[s]}</option>)}
           </select>
         </Field>
         <Field label="Tipo">
           <select className="field" value={d.type} onChange={(e) => set("type", e.target.value as TradeType)}>
-            {TRADE_TYPES.map((s) => <option key={s} value={s}>{TYPE_LABEL[s]}</option>)}
+            {TRADE_TYPES.map((s) => <option key={s} value={s}>{TYPE_SHORT[s]}</option>)}
           </select>
         </Field>
         <Field label="Setup">
           <select className="field" value={d.grade} onChange={(e) => set("grade", e.target.value as Grade)}>
-            {GRADES.map((g) => <option key={g} value={g}>Grado {g}</option>)}
+            {GRADES.map((g) => <option key={g} value={g}>{g}</option>)}
           </select>
         </Field>
       </div>

@@ -5,8 +5,10 @@ import { spawn } from "node:child_process";
 import { readFileSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
 
+// E2E_BASE=https://... prova un deploy già online invece di avviare il server locale.
 const PORT = 3999;
-const BASE = `http://localhost:${PORT}`;
+const REMOTE = process.env.E2E_BASE;
+const BASE = REMOTE ?? `http://localhost:${PORT}`;
 const CHROME = process.env.CHROME_PATH ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const SHOTS = process.env.SHOTS;
 const legacy = readFileSync(new URL("./fixtures/legacy-v8.json", import.meta.url), "utf8");
@@ -17,8 +19,8 @@ const check = (ok, label, detail = "") => {
   if (!ok) failures++;
 };
 
-const server = spawn("npx", ["next", "start", "-p", String(PORT)], { stdio: "ignore" });
-const stop = () => server.kill("SIGTERM");
+const server = REMOTE ? null : spawn("npx", ["next", "start", "-p", String(PORT)], { stdio: "ignore" });
+const stop = () => server?.kill("SIGTERM");
 process.on("exit", stop);
 
 async function waitForServer() {

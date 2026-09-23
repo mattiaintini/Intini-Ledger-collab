@@ -74,34 +74,34 @@ function Analytics({ journal }: { journal: Journal }) {
         <Stat label="Payoff" value={num(s.payoff, 2)} hint={`Media vinti ${money(s.avgWin, cur)}, persi ${money(s.avgLoss, cur)}`} />
         <Stat label="Win rate" value={pct(s.winRate)} hint={`${s.wins} su ${s.wins + s.losses} trade decisi`} />
         <Stat label="Max drawdown" value={pct(s.maxDrawdownPct, 2)} hint={money(-s.maxDrawdown, cur)} />
-        <Stat label="Serie massime" value={`${s.maxWinStreak} / ${s.maxLossStreak}`} hint="Vinti di fila / persi di fila" />
-        <Stat label="Miglior trade" value={money(s.bestTrade, cur, { sign: true })} valueClass={tone(s.bestTrade)} />
-        <Stat label="Peggior trade" value={money(s.worstTrade, cur, { sign: true })} valueClass={tone(s.worstTrade)} />
+        <Stat label="Max streaks" value={`${s.maxWinStreak} / ${s.maxLossStreak}`} hint="Vinti di fila / persi di fila" />
+        <Stat label="Best trade" value={money(s.bestTrade, cur, { sign: true })} valueClass={tone(s.bestTrade)} />
+        <Stat label="Worst trade" value={money(s.worstTrade, cur, { sign: true })} valueClass={tone(s.worstTrade)} />
       </div>
 
       <div className="mt-4 grid gap-4 md:mt-6 lg:grid-cols-2">
         <Card>
-          <CardTitle aside="trade per intervallo di 0,5R">Distribuzione dei risultati in R</CardTitle>
+          <CardTitle aside="trade per intervallo di 0,5R">R distribution</CardTitle>
           {rs.length ? <PnlBars data={rHistogram(rs)} label="Trade" /> : <Empty title="Nessun trade con rischio registrato" />}
         </Card>
         <Card>
-          <CardTitle>P&amp;L per giorno della settimana</CardTitle>
+          <CardTitle>P&amp;L by weekday</CardTitle>
           <PnlBars data={s.byWeekday.map((b) => ({ key: b.key.slice(0, 3), value: b.net }))} label="P&L" />
         </Card>
       </div>
 
       <div className="mt-4 grid gap-4 md:mt-6 md:grid-cols-2 lg:grid-cols-3">
-        <BreakdownTable title="Per sessione" rows={s.bySession} currency={cur} label={(k) => SESSION_LABEL[k as Session]} />
-        <BreakdownTable title="Per tipo" rows={s.byType} currency={cur} label={(k) => TYPE_LABEL[k as TradeType]} />
-        <BreakdownTable title="Per grado del setup" rows={s.byGrade} currency={cur} label={(k) => `Grado ${k}`} />
-        <BreakdownTable title="Per direzione" rows={s.byDirection} currency={cur} label={(k) => (k === "LONG" ? "Long" : "Short")} />
+        <BreakdownTable title="By session" rows={s.bySession} currency={cur} label={(k) => SESSION_LABEL[k as Session]} />
+        <BreakdownTable title="By type" rows={s.byType} currency={cur} label={(k) => TYPE_LABEL[k as TradeType]} />
+        <BreakdownTable title="By setup grade" rows={s.byGrade} currency={cur} label={(k) => `Grado ${k}`} />
+        <BreakdownTable title="By direction" rows={s.byDirection} currency={cur} label={(k) => (k === "LONG" ? "Long" : "Short")} />
         <div className="md:col-span-2">
-          <BreakdownTable title="Per strumento" rows={s.byAsset} currency={cur} />
+          <BreakdownTable title="By instrument" rows={s.byAsset} currency={cur} />
         </div>
       </div>
 
       <Card className="mt-4 md:mt-6">
-        <CardTitle>Qualità dell&apos;esecuzione</CardTitle>
+        <CardTitle>Execution quality</CardTitle>
         <div className="grid gap-4 sm:grid-cols-3">
           <div>
             <p className="text-xs text-muted">MAE medio</p>

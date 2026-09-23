@@ -5,6 +5,7 @@ import { WithJournal } from "@/components/onboarding";
 import { TradeList } from "@/components/trade-list";
 import { Button, ButtonLink, Card, Empty, PageHeader } from "@/components/ui";
 import { enrich } from "@/lib/journal/stats";
+import { auditJournal } from "@/lib/journal/validate";
 import { download, tradesToCsv } from "@/lib/journal/csv";
 import { OUTCOME_LABEL, OUTCOMES, type Journal, type Outcome } from "@/lib/journal/types";
 import { money, tone } from "@/lib/format";
@@ -14,6 +15,7 @@ function JournalView({ journal }: { journal: Journal }) {
   const [outcome, setOutcome] = useState<Outcome | "">("");
   const [month, setMonth] = useState("");
   const all = useMemo(() => enrich(journal.trades, journal.profile.capital).reverse(), [journal]);
+  const flagged = useMemo(() => new Set(auditJournal(journal).filter((i) => i.level === "error").map((i) => i.tradeId)), [journal]);
   const assets = useMemo(() => [...new Set(all.map((t) => t.asset))].sort(), [all]);
   const months = useMemo(() => [...new Set(all.map((t) => t.date.slice(0, 7)))], [all]);
   const list = all.filter((t) => (!asset || t.asset === asset) && (!outcome || t.outcome === outcome) && (!month || t.date.startsWith(month)));
@@ -50,7 +52,7 @@ function JournalView({ journal }: { journal: Journal }) {
             {list.length} trade, <span className={`num ${tone(net)}`}>{money(net, cur, { sign: true })}</span>
           </p>
         </div>
-        {list.length ? <TradeList trades={list} currency={cur} /> : <Empty title="Nessun trade con questi filtri" />}
+        {list.length ? <TradeList trades={list} currency={cur} flagged={flagged} /> : <Empty title="Nessun trade con questi filtri" />}
       </Card>
     </>
   );

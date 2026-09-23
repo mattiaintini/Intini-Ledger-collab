@@ -24,7 +24,7 @@ function DailyRisk({ journal }: { journal: Journal }) {
   const cur = journal.profile.currency;
   return (
     <Card>
-      <CardTitle aside={`limite ${num(journal.profile.maxDailyLossPct, 1)}%`}>Rischio di oggi</CardTitle>
+      <CardTitle aside={`limite ${num(journal.profile.maxDailyLossPct, 1)}%`}>Daily risk</CardTitle>
       <p className={`num text-2xl font-semibold tracking-[-0.02em] ${tone(pnl)}`}>{money(pnl, cur, { sign: true })}</p>
       <div className="mt-4 h-1.5 rounded-full bg-surface-3">
         <div className={`h-full rounded-full ${used >= 100 ? "bg-neg" : used >= 75 ? "bg-warn" : "bg-fg"}`} style={{ width: `${used}%` }} />
@@ -40,7 +40,8 @@ function Dashboard({ journal }: { journal: Journal }) {
   const { lastImport, clearImport } = useJournal();
   const s = useMemo(() => computeStats(journal.trades, journal.profile.capital), [journal]);
   const recent = useMemo(() => enrich(journal.trades, journal.profile.capital).reverse().slice(0, 8), [journal]);
-  const errors = useMemo(() => new Set(auditJournal(journal).filter((i) => i.level === "error").map((i) => i.tradeId)).size, [journal]);
+  const flagged = useMemo(() => new Set(auditJournal(journal).filter((i) => i.level === "error").map((i) => i.tradeId)), [journal]);
+  const errors = flagged.size;
   const cur = journal.profile.currency;
 
   return (
@@ -66,8 +67,8 @@ function Dashboard({ journal }: { journal: Journal }) {
       )}
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-5">
-        <Stat label="Capitale" value={money(s.equity, cur)} hint={pct(s.returnPct, 2, { sign: true })} />
-        <Stat label="P&L netto" value={money(s.net, cur, { sign: true })} valueClass={tone(s.net)} />
+        <Stat label="Equity" value={money(s.equity, cur)} hint={pct(s.returnPct, 2, { sign: true })} />
+        <Stat label="Net P&L" value={money(s.net, cur, { sign: true })} valueClass={tone(s.net)} />
         <Stat label="Win rate" value={pct(s.winRate)} hint={`${s.wins} vinti, ${s.losses} persi, ${s.breakeven} BE`} />
         <Stat label="Profit factor" value={num(s.profitFactor, 2)} hint={`Expectancy ${money(s.expectancy, cur)}`} />
         <div className="col-span-2 lg:col-span-1">
@@ -82,14 +83,14 @@ function Dashboard({ journal }: { journal: Journal }) {
             {s.trades ? <EquityChart data={s.curve} capital={journal.profile.capital} /> : <Empty title="Nessun trade ancora">Registra il primo trade per vedere la curva.</Empty>}
           </Card>
           <Card>
-            <CardTitle aside={<Link href="/journal" className="underline-offset-4 hover:underline">Tutti i trade</Link>}>Ultimi trade</CardTitle>
-            {recent.length ? <TradeList trades={recent} currency={cur} compact /> : <Empty title="Il journal è vuoto" />}
+            <CardTitle aside={<Link href="/journal" className="underline-offset-4 hover:underline">Tutti i trade</Link>}>Recent trades</CardTitle>
+            {recent.length ? <TradeList trades={recent} currency={cur} compact flagged={flagged} /> : <Empty title="Il journal è vuoto" />}
           </Card>
         </div>
         <div className="order-1 flex flex-col gap-4 lg:order-2">
           <DailyRisk journal={journal} />
           <Card className="hidden lg:block">
-            <CardTitle>Nuovo trade</CardTitle>
+            <CardTitle>New trade</CardTitle>
             <TradeForm journal={journal} />
           </Card>
         </div>

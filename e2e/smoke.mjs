@@ -75,6 +75,32 @@ async function run() {
     check(/nessuna discrepanza/.test(cotText), `${tag} COT senza discrepanze`);
     check(!/Nessun dato CFTC/.test(cotText), `${tag} COT senza mercati mancanti`);
 
+    check((await page.getByRole("heading", { name: /Your markets/ }).count()) === 1, `${tag} COT: i mercati del journal in testa`);
+    const firstMine = (await page.locator("section", { hasText: "Your markets" }).locator(tag === "desktop" ? "tbody tr" : "a").first().innerText()).split("\n")[0];
+    check(firstMine.startsWith("Oro"), `${tag} COT: primo mercato = il più tradato (oro)`, firstMine);
+    check((await page.getByText("Verificato", { exact: true }).count()) === 1, `${tag} COT: un solo badge (il riepilogo) quando tutto torna`);
+
+    // 4. Proposte del QA UX
+    await page.goto(BASE + "/journal");
+    check((await page.getByRole("link", { name: "da correggere" }).count()) === 2, `${tag} journal: trade incoerenti marcati`);
+    await page.goto(BASE + "/tools");
+    const eq = await page.getByLabel("Equity attuale", { exact: true }).inputValue();
+    check(eq === "11729", `${tag} position size sull'equity attuale, non sul capitale iniziale`, eq);
+    await page.goto(BASE + "/calendar");
+    await page.getByRole("button", { name: "Mese precedente" }).click();
+    const cal = await page.locator("main").innerText();
+    check(!cal.includes("…") && /[+-]\d/.test(cal), `${tag} calendario: P&L leggibile nelle celle`);
+    await page.goto(BASE + "/news");
+    const newsRows = await page.locator("main li").count();
+    const newsFallback = await page.getByText("non ha risposto").count();
+    check(newsRows > 0 || newsFallback === 1, `${tag} news: eventi in tabella o messaggio di fonte non disponibile`, `${newsRows} eventi`);
+    if (newsRows === 0) console.log(`WARN ${tag} news: ForexFactory non disponibile in questo momento (rate limit), tabella non verificata`);
+    await page.goto(BASE + "/settings");
+    await page.getByRole("button", { name: "Reimporta profilo mattia" }).click();
+    check((await page.getByRole("button", { name: /Conferma: sostituisce 31 trade/ }).count()) === 1, `${tag} reimport: il primo click chiede conferma`);
+    const stillSame = await page.evaluate(() => JSON.parse(localStorage.getItem("intini_journal_v9")).trades.length);
+    check(stillSame === 31, `${tag} reimport: nessuna sostituzione senza conferma`);
+
     check(errors.length === 0, `${tag} nessun errore in console`, errors.slice(0, 3).join(" | "));
     await ctx.close();
   }

@@ -2,9 +2,12 @@ import type { Currency } from "./journal/types";
 
 const ISO: Record<Currency, string> = { "€": "EUR", $: "USD", "£": "GBP" };
 
+// In it-IT Intl raggruppa le migliaia solo da 5 cifre: "1729" accanto a "11.729" si legge male.
+const GROUP = { useGrouping: "always" } as unknown as Intl.NumberFormatOptions;
+
 export function money(n: number | null | undefined, currency: Currency, opts: { sign?: boolean } = {}) {
   if (n === null || n === undefined || !Number.isFinite(n)) return "n/d";
-  const s = new Intl.NumberFormat("it-IT", { style: "currency", currency: ISO[currency], minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  const s = new Intl.NumberFormat("it-IT", { ...GROUP, style: "currency", currency: ISO[currency], minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
   return opts.sign && n > 0 ? `+${s}` : s;
 }
 
@@ -12,7 +15,7 @@ export function num(n: number | null | undefined, digits = 0, opts: { sign?: boo
   if (n === null || n === undefined) return "n/d";
   if (n === Infinity) return "∞";
   if (!Number.isFinite(n)) return "n/d";
-  const s = n.toLocaleString("it-IT", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  const s = n.toLocaleString("it-IT", { ...GROUP, minimumFractionDigits: digits, maximumFractionDigits: digits });
   return opts.sign && n > 0 ? `+${s}` : s;
 }
 

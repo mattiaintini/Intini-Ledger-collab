@@ -1,5 +1,7 @@
 import Link from "next/link";
-import type { MarketReport } from "@/lib/cot/source";
+import type { CotMarket } from "@/lib/cot/markets";
+import type { CotAnalytics } from "@/lib/cot/analytics";
+import type { CheckStatus } from "@/lib/cot/verify";
 import { num, pct, tone } from "@/lib/format";
 import { StatusBadge } from "./ui";
 
@@ -22,10 +24,20 @@ export function IndexBar({ value }: { value: number | null }) {
 
 export function Positioning({ label }: { label: string }) {
   const extreme = label.includes("estremo");
-  return <span className={`whitespace-nowrap text-sm ${extreme ? "text-accent" : label === "neutrale" || label.includes("insufficiente") ? "text-muted" : "text-fg"}`}>{label}</span>;
+  return <span className={`whitespace-nowrap text-sm ${extreme ? "font-semibold text-fg" : label === "neutrale" || label.includes("insufficiente") ? "text-muted" : "text-fg"}`}>{label}</span>;
 }
 
-export function CotTable({ markets }: { markets: MarketReport[] }) {
+/** Riga della panoramica COT: solo quello che serve alla tabella, non tutto lo storico di verifica. */
+export interface CotRowView {
+  market: CotMarket;
+  analytics: CotAnalytics;
+  status: CheckStatus;
+}
+
+/** Il badge compare solo se qualcosa non torna: "verificato" è la norma e lo dice già il riepilogo. */
+const Flag = ({ status }: { status: CheckStatus }) => (status === "pass" ? null : <StatusBadge status={status} />);
+
+export function CotTable({ markets }: { markets: CotRowView[] }) {
   return (
     <>
       {/* Desktop: tabella */}
@@ -33,25 +45,25 @@ export function CotTable({ markets }: { markets: MarketReport[] }) {
         <table className="w-full text-sm">
           <thead className="bg-surface text-left text-xs text-muted">
             <tr>
-              <th className="px-4 py-3 font-normal">Mercato</th>
-              <th className="px-4 py-3 text-right font-normal">Net speculativa</th>
-              <th className="px-4 py-3 text-right font-normal">Var. settimana</th>
-              <th className="px-4 py-3 text-right font-normal">Var. 4 settimane</th>
+              <th className="px-4 py-3 font-normal">Market</th>
+              <th className="px-4 py-3 text-right font-normal">Spec net</th>
+              <th className="px-4 py-3 text-right font-normal">1w change</th>
+              <th className="px-4 py-3 text-right font-normal">4w change</th>
               <th className="px-4 py-3 text-right font-normal">Long %</th>
-              <th className="px-4 py-3 font-normal">Index 26s</th>
-              <th className="px-4 py-3 font-normal">Index 52s</th>
-              <th className="px-4 py-3 font-normal">Index 3a</th>
-              <th className="px-4 py-3 font-normal">Posizionamento</th>
-              <th className="px-4 py-3 font-normal">Dati</th>
+              <th className="px-4 py-3 font-normal">Index 26w</th>
+              <th className="px-4 py-3 font-normal">Index 52w</th>
+              <th className="px-4 py-3 font-normal">Index 3y</th>
+              <th className="px-4 py-3 font-normal">Positioning</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {markets.map(({ market, analytics: a, verification: v }) => (
+            {markets.map(({ market, analytics: a, status }) => (
               <tr key={market.key} className="bg-bg">
                 <td className="px-4 py-3">
                   <Link href={`/cot/${market.key}`} className="font-medium underline-offset-4 hover:underline">
                     {market.label}
-                  </Link>
+                  </Link>{" "}
+                  <Flag status={status} />
                   <div className="text-xs text-subtle">{market.symbol}</div>
                 </td>
                 <td className={`num px-4 py-3 text-right ${tone(a.specNet)}`}>{num(a.specNet, 0, { sign: true })}</td>
@@ -62,7 +74,6 @@ export function CotTable({ markets }: { markets: MarketReport[] }) {
                 <td className="px-4 py-3"><IndexBar value={a.cotIndex52} /></td>
                 <td className="px-4 py-3"><IndexBar value={a.cotIndex156} /></td>
                 <td className="px-4 py-3"><Positioning label={a.positioning} /></td>
-                <td className="px-4 py-3"><StatusBadge status={v.status} /></td>
               </tr>
             ))}
           </tbody>
@@ -71,30 +82,30 @@ export function CotTable({ markets }: { markets: MarketReport[] }) {
 
       {/* Mobile: schede */}
       <div className="flex flex-col gap-3 md:hidden">
-        {markets.map(({ market, analytics: a, verification: v }) => (
+        {markets.map(({ market, analytics: a, status }) => (
           <Link key={market.key} href={`/cot/${market.key}`} className="rounded-[var(--radius-card)] border border-line bg-surface p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-medium">{market.label}</p>
                 <p className="text-xs text-subtle">{market.symbol}</p>
               </div>
-              <StatusBadge status={v.status} />
+              <Flag status={status} />
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-xs text-muted">Net speculativa</p>
+                <p className="text-xs text-muted">Spec net</p>
                 <p className={`num ${tone(a.specNet)}`}>{num(a.specNet, 0, { sign: true })}</p>
               </div>
               <div>
-                <p className="text-xs text-muted">Var. settimana</p>
+                <p className="text-xs text-muted">1w change</p>
                 <p className={`num ${tone(a.specNetChange)}`}>{num(a.specNetChange, 0, { sign: true })}</p>
               </div>
               <div>
-                <p className="text-xs text-muted">Index 52 settimane</p>
+                <p className="text-xs text-muted">Index 52w</p>
                 <IndexBar value={a.cotIndex52} />
               </div>
               <div>
-                <p className="text-xs text-muted">Posizionamento</p>
+                <p className="text-xs text-muted">Positioning</p>
                 <Positioning label={a.positioning} />
               </div>
             </div>

@@ -36,28 +36,28 @@ export default async function CotMarketPage({ params }: { params: Promise<{ key:
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-        <Stat label="Net speculativa" value={num(a.specNet, 0, { sign: true })} valueClass={tone(a.specNet)} hint={`${pct(a.specNetPctOi, 1, { sign: true })} dell'open interest`} />
-        <Stat label="Variazione settimana" value={num(a.specNetChange, 0, { sign: true })} valueClass={tone(a.specNetChange)} hint={`4 settimane: ${num(a.specNetChange4w, 0, { sign: true })}`} />
-        <Stat label="Long speculativi" value={pct(a.specLongPct, 1)} hint={`${num(a.specLong)} long, ${num(a.specShort)} short`} />
-        <Stat label="Net commercial" value={num(a.commNet, 0, { sign: true })} valueClass={tone(a.commNet)} hint={`Variazione ${num(a.commNetChange, 0, { sign: true })}`} />
+        <Stat label="Speculative net" value={num(a.specNet, 0, { sign: true })} valueClass={tone(a.specNet)} hint={`${pct(a.specNetPctOi, 1, { sign: true })} dell'open interest`} />
+        <Stat label="Weekly change" value={num(a.specNetChange, 0, { sign: true })} valueClass={tone(a.specNetChange)} hint={`4 settimane: ${num(a.specNetChange4w, 0, { sign: true })}`} />
+        <Stat label="Speculative long" value={pct(a.specLongPct, 1)} hint={`${num(a.specLong)} long, ${num(a.specShort)} short`} />
+        <Stat label="Commercial net" value={num(a.commNet, 0, { sign: true })} valueClass={tone(a.commNet)} hint={`Variazione ${num(a.commNetChange, 0, { sign: true })}`} />
       </div>
 
       <div className="mt-4 grid gap-4 md:mt-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardTitle aside={<span><span className="text-accent">Speculativi</span> · Commercial</span>}>Net positions, ultimi 3 anni</CardTitle>
+          <CardTitle aside={<span><span className="text-fg">Speculativi</span> · Commercial</span>}>Net positions, 3 years</CardTitle>
           <CotNetChart data={r.history} />
         </Card>
         <Card>
           <CardTitle>COT Index</CardTitle>
           <div className="flex flex-col gap-5">
-            {[["26 settimane", a.cotIndex26], ["52 settimane", a.cotIndex52], ["3 anni", a.cotIndex156], ["Commercial 52 settimane", a.commIndex52]].map(([l, val]) => (
+            {[["26 weeks", a.cotIndex26], ["52 weeks", a.cotIndex52], ["3 years", a.cotIndex156], ["Commercial 52 weeks", a.commIndex52]].map(([l, val]) => (
               <div key={l as string} className="flex items-center justify-between gap-4">
                 <span className="text-sm text-muted">{l}</span>
                 <IndexBar value={val as number | null} />
               </div>
             ))}
             <div className="flex items-center justify-between border-t border-line pt-4">
-              <span className="text-sm text-muted">Posizionamento</span>
+              <span className="text-sm text-muted">Positioning</span>
               <Positioning label={a.positioning} />
             </div>
             <div className="flex items-center justify-between">
@@ -69,7 +69,7 @@ export default async function CotMarketPage({ params }: { params: Promise<{ key:
       </div>
 
       <Card className="mt-4 md:mt-6">
-        <CardTitle aside={<StatusBadge status={v.status} />}>Verifica settimana per settimana</CardTitle>
+        <CardTitle aside={<StatusBadge status={v.status} />}>Weekly checks</CardTitle>
         <div className="mb-4 grid gap-2 text-sm text-muted md:grid-cols-2">
           <p><StatusBadge status={v.freshness.status} label="Aggiornamento" /> <span className="ml-2">{v.freshness.message}</span></p>
           <p><StatusBadge status={v.apiLag.status} label="Allineamento fonti" /> <span className="ml-2">{v.apiLag.message}</span></p>

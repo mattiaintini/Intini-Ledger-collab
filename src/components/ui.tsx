@@ -41,9 +41,11 @@ export function Stat({ label, value, hint, valueClass = "" }: { label: string; v
   );
 }
 
-type Variant = "primary" | "ghost" | "danger";
+/** primary (clay) solo per l'azione principale, registrare un trade; solid per le altre conferme. */
+type Variant = "primary" | "solid" | "ghost" | "danger";
 const variants: Record<Variant, string> = {
   primary: "bg-accent text-black hover:bg-accent-hover",
+  solid: "bg-fg text-black hover:bg-muted",
   ghost: "border border-line text-fg hover:border-line-strong",
   danger: "border border-neg/40 text-neg hover:border-neg",
 };

@@ -1,58 +1,34 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
+import type { Metadata } from "next";
+import Link from "next/link";
 import { Card, PageHeader } from "@/components/ui";
+import { NewsTable } from "@/components/news-table";
+import { fetchCalendar, FF_URL } from "@/lib/news/forexfactory";
 
-const ZONES = [
-  ["Europe/Rome", "Roma"],
-  ["Europe/London", "Londra"],
-  ["America/New_York", "New York"],
-  ["Etc/UTC", "UTC"],
-] as const;
+export const metadata: Metadata = { title: "News" };
+// Pagina dinamica, feed nella data cache per un'ora: ForexFactory limita molto le richieste (429)
+// e solo le risposte riuscite vengono salvate, quindi un errore non resta in pagina per un'ora.
+export const dynamic = "force-dynamic";
 
-/** Calendario economico di TradingView: il widget va reinserito da zero a ogni cambio di fuso. */
-function EconomicCalendar({ timezone }: { timezone: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const host = ref.current;
-    if (!host) return;
-    host.innerHTML = '<div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>';
-    const s = document.createElement("script");
-    s.src = "https://s3.tradingview.com/external-embedding/embed-widget-events.js";
-    s.async = true;
-    s.innerHTML = JSON.stringify({
-      colorTheme: "dark",
-      isTransparent: true,
-      width: "100%",
-      height: "100%",
-      locale: "it",
-      importanceFilter: "0,1",
-      countryFilter: "us,eu,gb,jp,au,ca,ch,nz,cn,de",
-      timezone,
-    });
-    host.appendChild(s);
-    return () => {
-      host.innerHTML = "";
-    };
-  }, [timezone]);
-  return <div ref={ref} className="tradingview-widget-container h-[70dvh] min-h-[520px] w-full" />;
-}
+export default async function NewsPage() {
+  let data: Awaited<ReturnType<typeof fetchCalendar>> | null = null;
+  try {
+    data = await fetchCalendar();
+  } catch {
+    data = null;
+  }
 
-export default function NewsPage() {
-  const [tz, setTz] = useState("Europe/Rome");
   return (
     <>
       <PageHeader
         title="News"
-        description="Calendario macro con impatto medio e alto. Dati forniti da TradingView."
-        actions={
-          <select className="field w-44" value={tz} onChange={(e) => setTz(e.target.value)} aria-label="Fuso orario">
-            {ZONES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-        }
+        description="Calendario macro della settimana: orario, valuta, impatto, previsto e precedente. Gli eventi già passati sono attenuati."
       />
-      <Card className="p-2 md:p-3">
-        <EconomicCalendar timezone={tz} />
+      <Card>
+        {data ? <NewsTable events={data.events} /> : <p className="text-sm text-muted">Il calendario ForexFactory non ha risposto. Riprova tra qualche minuto.</p>}
+        <p className="mt-6 text-xs text-subtle">
+          Fonte: <Link href={FF_URL} target="_blank" className="underline underline-offset-4">ForexFactory</Link>, aggiornato ogni ora. Il feed copre solo la settimana corrente e non riporta il dato effettivo.
+          {data && data.dropped > 0 && ` ${data.dropped} eventi scartati perché malformati.`}
+        </p>
       </Card>
     </>
   );

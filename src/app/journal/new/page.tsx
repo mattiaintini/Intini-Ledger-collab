@@ -10,7 +10,7 @@ export default function Page() {
       {(j) => (
         <>
           <PageHeader
-            title="Nuovo trade"
+            title="New trade"
             description="Il P&L si calcola dal piano (capitale x rischio x RR). Se lo modifichi e si discosta di oltre il 25% ti viene chiesta conferma."
             actions={<ButtonLink href="/journal">Journal</ButtonLink>}
           />

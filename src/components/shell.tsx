@@ -8,7 +8,7 @@ import { Ellipsis } from "lucide-react";
 import { NAV } from "./nav";
 
 // Barra mobile: le 4 sezioni d'uso quotidiano, il resto sotto "Altro".
-const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], NAV[4], { href: "/more", label: "Altro", icon: Ellipsis }];
+const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], NAV[4], { href: "/more", label: "More", icon: Ellipsis }];
 
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
 

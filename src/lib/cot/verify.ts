@@ -29,7 +29,7 @@ export interface MarketVerification {
   status: CheckStatus;
 }
 
-const fmt = (n: number) => n.toLocaleString("it-IT");
+const fmt = (n: number) => n.toLocaleString("it-IT", { useGrouping: "always" } as Intl.NumberFormatOptions);
 
 const worst = (list: CheckStatus[]): CheckStatus =>
   list.includes("fail") ? "fail" : list.includes("warn") ? "warn" : list.every((s) => s === "skip") ? "skip" : "pass";

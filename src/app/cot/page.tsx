@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCotReport } from "@/lib/cot/report";
-import { CotTable } from "@/components/cot-parts";
+import { CotMarkets } from "@/components/cot-markets";
 import { ButtonLink, Card, PageHeader, StatusBadge } from "@/components/ui";
 import { dateIT } from "@/lib/format";
-import type { MarketGroup } from "@/lib/cot/markets";
 
 export const metadata: Metadata = { title: "COT Report" };
 export const revalidate = 3600;
-
-const GROUPS: MarketGroup[] = ["Valute", "Metalli", "Energia", "Indici", "Crypto"];
 
 export default async function CotPage() {
   const report = await getCotReport();
@@ -42,20 +39,10 @@ export default async function CotPage() {
         </div>
       </Card>
 
-      <div className="flex flex-col gap-10">
-        {GROUPS.map((g) => {
-          const markets = report.markets.filter((m) => m.market.group === g);
-          return markets.length ? (
-            <section key={g}>
-              <h2 className="mb-3 text-sm font-medium text-muted">{g}</h2>
-              <CotTable markets={markets} />
-            </section>
-          ) : null;
-        })}
-      </div>
+      <CotMarkets rows={report.markets.map((m) => ({ market: m.market, analytics: m.analytics, status: m.verification.status }))} />
 
       <Card className="mt-10">
-        <h2 className="text-sm font-medium">Come leggere i numeri</h2>
+        <h2 className="text-sm font-medium">How to read</h2>
         <dl className="mt-4 grid gap-4 text-sm text-muted md:grid-cols-2">
           <div><dt className="text-fg">Net speculativa</dt><dd>Contratti long meno short dei Non-Commercial (fondi, CTA).</dd></div>
           <div><dt className="text-fg">Variazione</dt><dd>Dai campi di variazione pubblicati dalla CFTC, verificati contro la differenza tra le due settimane.</dd></div>

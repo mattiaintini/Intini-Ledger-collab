@@ -36,36 +36,37 @@ function Rows({ weeks }: { weeks: WeekVerification[] }) {
   );
 }
 
-/** Settimane dalla più recente. Le prime 12 visibili, le altre espandibili. */
+/**
+ * Riepilogo in una riga; le settimane con errori sono sempre visibili, le altre si aprono a richiesta.
+ */
 export function WeekTable({ weeks }: { weeks: WeekVerification[] }) {
   const ordered = [...weeks].reverse();
-  const head = ordered.slice(0, 12);
-  const rest = ordered.slice(12);
-  const table = (rows: WeekVerification[], withHead: boolean) => (
+  const failed = ordered.filter((w) => w.status === "fail");
+  const crossChecked = weeks.filter((w) => w.source === "pass").length;
+  const table = (rows: WeekVerification[]) => (
     <div className="overflow-x-auto scrollbar-thin">
       <table className="w-full min-w-[560px] text-sm">
-        {withHead && (
-          <thead className="text-left text-xs text-muted">
-            <tr>
-              <th className="px-3 py-2 font-normal">Settimana</th>
-              {COLS.map(([k, l]) => <th key={k} className="px-3 py-2 font-normal">{l}</th>)}
-              <th className="px-3 py-2 font-normal">Dettaglio</th>
-            </tr>
-          </thead>
-        )}
+        <thead className="text-left text-xs text-muted">
+          <tr>
+            <th className="px-3 py-2 font-normal">Settimana</th>
+            {COLS.map(([k, l]) => <th key={k} className="px-3 py-2 font-normal">{l}</th>)}
+            <th className="px-3 py-2 font-normal">Dettaglio</th>
+          </tr>
+        </thead>
         <tbody className="divide-y divide-line"><Rows weeks={rows} /></tbody>
       </table>
     </div>
   );
   return (
     <div>
-      {table(head, true)}
-      {rest.length > 0 && (
-        <details className="mt-2">
-          <summary className="cursor-pointer px-3 py-2 text-sm text-muted">Mostra altre {rest.length} settimane</summary>
-          {table(rest, false)}
-        </details>
-      )}
+      <p className="text-sm">
+        {weeks.length} settimane controllate, <span className={failed.length ? "text-neg" : ""}>{failed.length} con errori</span>, {crossChecked} confrontate col file CFTC.
+      </p>
+      {failed.length > 0 && <div className="mt-4">{table(failed)}</div>}
+      <details className="mt-3">
+        <summary className="cursor-pointer py-2 text-sm text-muted">Dettaglio di tutte le settimane</summary>
+        {table(ordered)}
+      </details>
       <p className="mt-4 text-xs text-subtle">
         Continuità: le variazioni pubblicate coincidono con la differenza dalla settimana prima. Bilancio OI: open interest uguale a reportable più non reportable, e reportable uguale a speculativi più spreading più commercial. Calendario: nessuna settimana mancante. File CFTC: ogni campo coincide con il file ufficiale della stessa data.
       </p>

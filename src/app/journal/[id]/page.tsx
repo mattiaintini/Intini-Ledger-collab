@@ -17,7 +17,7 @@ export default function EditTradePage() {
         if (!trade) {
           return (
             <>
-              <PageHeader title="Modifica trade" actions={<ButtonLink href="/journal">Journal</ButtonLink>} />
+              <PageHeader title="Edit trade" actions={<ButtonLink href="/journal">Journal</ButtonLink>} />
               <Empty title="Trade non trovato">Potrebbe essere stato eliminato.</Empty>
             </>
           );
@@ -26,7 +26,7 @@ export default function EditTradePage() {
         return (
           <>
             <PageHeader
-              title="Modifica trade"
+              title="Edit trade"
               description={`${trade.asset} del ${dateIT(trade.date)}. Le modifiche passano dagli stessi controlli dell'inserimento.`}
               actions={<ButtonLink href="/journal">Journal</ButtonLink>}
             />

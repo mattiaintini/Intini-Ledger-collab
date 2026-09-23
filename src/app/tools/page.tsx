@@ -6,12 +6,13 @@ import { Button, Card, CardTitle, Field, PageHeader, Stat } from "@/components/u
 import { useJournal } from "@/lib/journal/store";
 import { computeStats } from "@/lib/journal/stats";
 import { monteCarlo, type MonteCarloResult } from "@/lib/montecarlo";
-import { num, parseNum, pct } from "@/lib/format";
+import { money as fmtMoney, num, parseNum, pct } from "@/lib/format";
+import type { Currency } from "@/lib/journal/types";
 
 const n = (s: string) => parseNum(s);
 const money = (s: string) => parseNum(s, { money: true });
 
-function PositionSize({ capital }: { capital: number }) {
+function PositionSize({ capital, currency }: { capital: number; currency: Currency }) {
   const [cap, setCap] = useState(String(Math.round(capital)));
   const [risk, setRisk] = useState("1");
   const [stop, setStop] = useState("20");
@@ -22,21 +23,21 @@ function PositionSize({ capital }: { capital: number }) {
     <Card>
       <CardTitle>Position size</CardTitle>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Capitale"><input className="field num" inputMode="decimal" value={cap} onChange={(e) => setCap(e.target.value)} /></Field>
+        <Field label="Equity attuale" hint="Dal journal: capitale iniziale più P&L"><input className="field num" inputMode="decimal" value={cap} onChange={(e) => setCap(e.target.value)} /></Field>
         <Field label="Rischio %"><input className="field num" inputMode="decimal" value={risk} onChange={(e) => setRisk(e.target.value)} /></Field>
         <Field label="Stop (pip o punti)"><input className="field num" inputMode="decimal" value={stop} onChange={(e) => setStop(e.target.value)} /></Field>
-        <Field label="Valore pip per lotto" hint="EURUSD 10, XAUUSD 1 per 0,01 $"><input className="field num" inputMode="decimal" value={pipValue} onChange={(e) => setPipValue(e.target.value)} /></Field>
+        <Field label={`Valore pip per lotto (${currency})`} hint={`Nella valuta del conto: EURUSD 10 $ per lotto, con conto in € dividi per il cambio`}><input className="field num" inputMode="decimal" value={pipValue} onChange={(e) => setPipValue(e.target.value)} /></Field>
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3">
         <Stat label="Lotti" value={Number.isFinite(lots) ? num(lots, 2) : "n/d"} />
-        <Stat label="Rischio in valuta" value={Number.isFinite(riskAmount) ? num(riskAmount, 2) : "n/d"} />
+        <Stat label="Rischio" value={fmtMoney(riskAmount, currency)} />
       </div>
-      <p className="mt-3 text-xs text-subtle">Lotti = capitale x rischio / (stop x valore del pip). Arrotonda per difetto al passo del tuo broker.</p>
+      <p className="mt-3 text-xs text-subtle">Lotti = equity x rischio / (stop x valore del pip), tutto nella valuta del conto. Arrotonda per difetto al passo del tuo broker.</p>
     </Card>
   );
 }
 
-function Simulator({ prefill }: { prefill: { start: number; winRate: number; rr: number } }) {
+function Simulator({ prefill }: { prefill: { start: number; winRate: number; rr: number; sample: number } }) {
   const [f, setF] = useState({ start: String(Math.round(prefill.start)), winRate: String(Math.round(prefill.winRate)), rr: String(prefill.rr), risk: "1", trades: "100", dd: "20" });
   const [res, setRes] = useState<MonteCarloResult | null>(null);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
@@ -56,8 +57,12 @@ function Simulator({ prefill }: { prefill: { start: number; winRate: number; rr:
         <Field label="Soglia DD %"><input className="field num" value={f.dd} onChange={set("dd")} inputMode="decimal" /></Field>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Button variant="primary" onClick={run} disabled={!valid}>Simula</Button>
-        <p className="text-xs text-subtle">Precompilato con win rate e payoff reali del tuo journal, quando ci sono trade.</p>
+        <Button variant="solid" onClick={run} disabled={!valid}>Simula</Button>
+        <p className="text-xs text-subtle">
+          {prefill.sample
+            ? `Precompilato con win rate e payoff di ${prefill.sample} trade decisi del journal${prefill.sample < 100 ? ": campione piccolo, la stima è incerta" : ""}.`
+            : "Nessun trade nel journal: valori di esempio."}
+        </p>
       </div>
       {res && (
         <>
@@ -80,16 +85,22 @@ function Simulator({ prefill }: { prefill: { start: number; winRate: number; rr:
 export default function ToolsPage() {
   const { journal } = useJournal();
   const prefill = useMemo(() => {
-    if (!journal) return { start: 10000, winRate: 50, rr: 2 };
+    if (!journal) return { start: 10000, winRate: 50, rr: 2, currency: "€" as Currency, sample: 0 };
     const s = computeStats(journal.trades, journal.profile.capital);
-    return { start: s.equity, winRate: s.winRate ?? 50, rr: s.payoff !== null && Number.isFinite(s.payoff) ? Math.round(s.payoff * 100) / 100 : 2 };
+    return {
+      start: s.equity,
+      winRate: s.winRate ?? 50,
+      rr: s.payoff !== null && Number.isFinite(s.payoff) ? Math.round(s.payoff * 100) / 100 : 2,
+      currency: journal.profile.currency,
+      sample: s.wins + s.losses,
+    };
   }, [journal]);
 
   return (
     <>
       <PageHeader title="Tools" description="Dimensionamento della posizione e simulazione dell'andamento del capitale." />
       <div className="grid gap-4 md:gap-6">
-        <div className="max-w-2xl"><PositionSize capital={prefill.start} /></div>
+        <div className="max-w-2xl"><PositionSize key={journal ? "j" : "none"} capital={prefill.start} currency={prefill.currency} /></div>
         <Simulator key={journal ? "j" : "none"} prefill={prefill} />
       </div>
     </>

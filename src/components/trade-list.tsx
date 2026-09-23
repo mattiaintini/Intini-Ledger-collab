@@ -18,7 +18,8 @@ function ImageModal({ src, onClose }: { src: string; onClose: () => void }) {
   );
 }
 
-export function TradeList({ trades, currency, compact = false }: { trades: EnrichedTrade[]; currency: Currency; compact?: boolean }) {
+/** `flagged` = id dei trade con errori nel controllo dati: vengono marcati con il link di correzione. */
+export function TradeList({ trades, currency, compact = false, flagged = new Set<string>() }: { trades: EnrichedTrade[]; currency: Currency; compact?: boolean; flagged?: ReadonlySet<string> }) {
   const { deleteTrade } = useJournal();
   const [img, setImg] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -57,6 +58,11 @@ export function TradeList({ trades, currency, compact = false }: { trades: Enric
                 <td className="num whitespace-nowrap px-3 py-2.5">{dateIT(t.date)}<span className="ml-2 text-subtle">{t.time}</span></td>
                 <td className="px-3 py-2.5 font-medium">
                   {t.asset}
+                  {flagged.has(t.id) && (
+                    <Link href={`/journal/${encodeURIComponent(t.id)}`} className="ml-2 text-xs font-normal text-neg underline underline-offset-4">
+                      da correggere
+                    </Link>
+                  )}
                   {!compact && t.notes && <p className="max-w-64 truncate text-xs font-normal text-subtle" title={t.notes}>{t.notes}</p>}
                 </td>
                 <td className="px-3 py-2.5 text-muted">{t.direction === "LONG" ? "Long" : "Short"}</td>
@@ -86,7 +92,14 @@ export function TradeList({ trades, currency, compact = false }: { trades: Enric
         {trades.map((t) => (
           <li key={t.id} className="py-3">
             <div className="flex items-baseline justify-between gap-3">
-              <p className="font-medium">{t.asset} <span className="text-sm font-normal text-muted">{t.direction === "LONG" ? "Long" : "Short"}</span></p>
+              <p className="font-medium">
+                {t.asset} <span className="text-sm font-normal text-muted">{t.direction === "LONG" ? "Long" : "Short"}</span>
+                {flagged.has(t.id) && (
+                  <Link href={`/journal/${encodeURIComponent(t.id)}`} className="ml-2 text-xs font-normal text-neg underline underline-offset-4">
+                    da correggere
+                  </Link>
+                )}
+              </p>
               <p className={`num font-medium ${tone(t.pnl)}`}>{money(t.pnl, currency, { sign: true })}</p>
             </div>
             <div className="mt-1 flex items-baseline justify-between gap-3 text-xs text-subtle">

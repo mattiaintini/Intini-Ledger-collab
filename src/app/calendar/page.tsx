@@ -9,6 +9,12 @@ import type { Journal } from "@/lib/journal/types";
 import { money, tone } from "@/lib/format";
 
 const DAYS = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
+/** Valore compatto per le celle strette del telefono: "+171", "-1,2k". */
+const compactPnl = (n: number) => {
+  const a = Math.abs(n);
+  const body = a >= 1000 ? `${(a / 1000).toLocaleString("it-IT", { maximumFractionDigits: 1 })}k` : Math.round(a).toString();
+  return `${n > 0 ? "+" : n < 0 ? "-" : ""}${body}`;
+};
 const iso = (y: number, m: number, d: number) => `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
 function CalendarView({ journal }: { journal: Journal }) {
@@ -60,7 +66,8 @@ function CalendarView({ journal }: { journal: Journal }) {
                 <span className="text-[11px] text-muted">{d}</span>
                 {v && (
                   <span>
-                    <span className={`num block truncate text-[10px] font-medium md:text-sm ${tone(v.pnl)}`}>{money(v.pnl, cur, { sign: true })}</span>
+                    <span className={`num block text-[11px] font-medium md:hidden ${tone(v.pnl)}`}>{compactPnl(v.pnl)}</span>
+                    <span className={`num hidden truncate text-sm font-medium md:block ${tone(v.pnl)}`}>{money(v.pnl, cur, { sign: true })}</span>
                     <span className="hidden text-[11px] text-subtle md:block">{v.trades} trade</span>
                   </span>
                 )}

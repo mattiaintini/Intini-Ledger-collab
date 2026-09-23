@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/ui";
 export default function MorePage() {
   return (
     <>
-      <PageHeader title="Altro" />
+      <PageHeader title="More" />
       <ul className="divide-y divide-line rounded-[var(--radius-card)] border border-line bg-surface">
         {[...SECONDARY_NAV, { href: "/cot/verification", label: "Data verification" }].map((n) => (
           <li key={n.href}>

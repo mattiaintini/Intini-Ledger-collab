@@ -27,7 +27,7 @@ function ProfileForm({ journal }: { journal: Journal }) {
   };
   return (
     <Card>
-      <CardTitle>Profilo</CardTitle>
+      <CardTitle>Profile</CardTitle>
       <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
         <Field label="Nome"><input className="field" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
         <Field label="Valuta">
@@ -42,7 +42,7 @@ function ProfileForm({ journal }: { journal: Journal }) {
           <input className="field num" inputMode="decimal" value={f.max} onChange={(e) => setF({ ...f, max: e.target.value })} />
         </Field>
         <div className="flex items-center gap-3 sm:col-span-2">
-          <Button type="submit" variant="primary">Salva</Button>
+          <Button type="submit" variant="solid">Salva</Button>
           {msg && <span className={`text-sm ${msg.ok ? "text-pos" : "text-neg"}`}>{msg.text}</span>}
         </div>
       </form>
@@ -58,7 +58,7 @@ function DataCheck({ journal }: { journal: Journal }) {
   const status = errors.length ? "fail" : warnings.length ? "warn" : "pass";
   return (
     <Card id="controllo-dati">
-      <CardTitle aside={<StatusBadge status={status} label={status === "pass" ? "Nessun problema" : undefined} />}>Controllo dati del journal</CardTitle>
+      <CardTitle aside={<StatusBadge status={status} label={status === "pass" ? "Nessun problema" : undefined} />}>Data check</CardTitle>
       <p className="text-sm text-muted">
         Ogni trade ricontrollato con le regole dell&apos;inserimento: date, coerenza tra esito e P&amp;L, scostamento dal piano oltre il 25%, rischio oltre il limite, doppioni.{" "}
         {journal.trades.length} trade: {errors.length} errori su {errorTrades} trade, {warnings.length} avvisi.
@@ -84,6 +84,14 @@ function DataManagement({ journal }: { journal: Journal }) {
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [report, setReport] = useState<MigrationReport | null>(null);
   const [confirmWipe, setConfirmWipe] = useState(false);
+  const [confirmImport, setConfirmImport] = useState<string | null>(null);
+  const backup = () => download(`journal_backup_${stamp}.json`, JSON.stringify(journal), "application/json");
+  const reimport = (u: string) => {
+    if (confirmImport !== u) return setConfirmImport(u);
+    backup(); // copia di sicurezza del journal attuale prima di sostituirlo
+    setReport(importLegacy(u));
+    setConfirmImport(null);
+  };
   const stamp = new Date().toISOString().slice(0, 10);
 
   const restore = async (file: File) => {
@@ -95,10 +103,10 @@ function DataManagement({ journal }: { journal: Journal }) {
 
   return (
     <Card>
-      <CardTitle>Backup e dati</CardTitle>
+      <CardTitle>Backup</CardTitle>
       <p className="text-sm text-muted">I dati vivono solo in questo browser. Esporta un backup JSON con regolarità: è l&apos;unico modo per spostarli su un altro dispositivo.</p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <Button variant="primary" onClick={() => download(`journal_backup_${stamp}.json`, JSON.stringify(journal), "application/json")}>Esporta backup JSON</Button>
+        <Button variant="solid" onClick={backup}>Esporta backup JSON</Button>
         <Button onClick={() => download(`journal_${stamp}.csv`, tradesToCsv(journal.trades), "text/csv")}>Esporta CSV</Button>
         <label className="inline-flex cursor-pointer items-center rounded-[var(--radius-ui)] border border-line px-4 py-2.5 text-sm font-medium hover:border-line-strong">
           Carica backup
@@ -110,19 +118,30 @@ function DataManagement({ journal }: { journal: Journal }) {
       {legacyUsers.length > 0 && (
         <div className="mt-6 border-t border-line pt-5">
           <p className="text-sm">Dati della versione precedente (v8) presenti in questo browser</p>
-          <p className="mt-1 text-xs text-subtle">L&apos;import sostituisce il journal attuale.</p>
+          <p className="mt-1 text-xs text-subtle">L&apos;import sostituisce il journal attuale. Prima di sostituirlo viene scaricato un backup JSON.</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {legacyUsers.map((u) => <Button key={u} onClick={() => setReport(importLegacy(u))}>Reimporta profilo {u}</Button>)}
+            {legacyUsers.map((u) => (
+              <Button key={u} variant={confirmImport === u ? "danger" : "ghost"} onClick={() => reimport(u)}>
+                {confirmImport === u ? `Conferma: sostituisce ${journal.trades.length} trade` : `Reimporta profilo ${u}`}
+              </Button>
+            ))}
           </div>
           {report && <div className="mt-3"><MigrationSummary report={report} /></div>}
         </div>
       )}
 
       <div className="mt-6 border-t border-line pt-5">
-        <Button variant="danger" onClick={() => (confirmWipe ? wipe() : setConfirmWipe(true))}>
+        <Button
+          variant="danger"
+          onClick={() => {
+            if (!confirmWipe) return setConfirmWipe(true);
+            backup();
+            wipe();
+          }}
+        >
           {confirmWipe ? "Conferma: elimina tutto" : "Elimina tutti i dati"}
         </Button>
-        {confirmWipe && <p className="mt-2 text-xs text-subtle">Operazione irreversibile. Esporta prima un backup.</p>}
+        {confirmWipe && <p className="mt-2 text-xs text-subtle">Prima di eliminare viene scaricato un backup JSON.</p>}
       </div>
     </Card>
   );

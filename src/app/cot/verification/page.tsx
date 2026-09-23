@@ -19,7 +19,7 @@ export default async function VerificationPage() {
       />
 
       <Card className="mb-6">
-        <CardTitle aside={<StatusBadge status={report.status} />}>Fonti usate in questa generazione</CardTitle>
+        <CardTitle aside={<StatusBadge status={report.status} />}>Sources</CardTitle>
         <ul className="divide-y divide-line text-sm">
           {report.sources.map((s) => (
             <li key={s.id} className="flex flex-col gap-1 py-3 md:flex-row md:items-center md:justify-between">
@@ -38,7 +38,7 @@ export default async function VerificationPage() {
       </Card>
 
       <Card>
-        <CardTitle>Esito per mercato</CardTitle>
+        <CardTitle>Results by market</CardTitle>
         {report.missing.length > 0 && (
           <p className="mb-4 text-sm text-neg">Nessun dato dall&apos;API CFTC per {report.missing.map((m) => `${m.label} (${m.code})`).join(", ")}.</p>
         )}
@@ -73,7 +73,7 @@ export default async function VerificationPage() {
       </Card>
 
       <Card className="mt-6">
-        <CardTitle>Controlli eseguiti su ogni settimana</CardTitle>
+        <CardTitle>Weekly checks</CardTitle>
         <ol className="flex list-decimal flex-col gap-3 pl-5 text-sm text-muted">
           <li><span className="text-fg">Confronto tra fonti.</span> Ogni campo dell&apos;API CFTC deve coincidere con il file grezzo ufficiale della stessa data (archivi annuali e file della settimana).</li>
           <li><span className="text-fg">Continuità.</span> Le variazioni settimanali pubblicate devono essere uguali alla differenza calcolata tra le due settimane, per speculativi, commercial, spreading, non reportable e open interest.</li>

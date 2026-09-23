@@ -38,7 +38,11 @@ export function CotTable({ markets }: { markets: CotRowView[] }) {
     <>
       {/* Desktop: tabella */}
       <div className="hidden overflow-x-auto rounded-[var(--radius-card)] bg-surface px-2 md:block">
-        <table className="w-full text-sm">
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            <col className="w-[18%]" /><col className="w-[10%]" /><col className="w-[9%]" /><col className="w-[9%]" /><col className="w-[7%]" />
+            <col className="w-[11%]" /><col className="w-[11%]" /><col className="w-[11%]" /><col className="w-[14%]" />
+          </colgroup>
           <thead className="text-left text-[12px] text-muted">
             <tr>
               <th className="px-3 py-2.5 font-medium">Market</th>

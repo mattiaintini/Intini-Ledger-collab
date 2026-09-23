@@ -96,7 +96,7 @@ const fromTrade = (t: Trade): Draft => ({
 });
 
 /** Nuovo trade, oppure modifica di `initial` con le stesse regole di validazione. */
-export function TradeForm({ journal, initial, onSaved }: { journal: Journal; initial?: Trade; onSaved?: () => void }) {
+export function TradeForm({ journal, initial, onSaved, id }: { journal: Journal; initial?: Trade; onSaved?: () => void; id?: string }) {
   const { addTrade, updateTrade } = useJournal();
   const [d, setD] = useState<Draft>(() => (initial ? fromTrade(initial) : empty()));
   // in modifica il P&L registrato resta quello scritto, non viene ricalcolato dal piano
@@ -164,7 +164,7 @@ export function TradeForm({ journal, initial, onSaved }: { journal: Journal; ini
   const outcomeError = errors.outcome && !d.outcome ? "Seleziona l'esito" : errors.outcome;
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-6" noValidate>
+    <form id={id} onSubmit={submit} className="flex flex-col gap-6" noValidate>
       <Group header="Quando">
         <Row label="Data" error={errors.date}>
           <input type="date" className="row-input" value={d.date} max={todayISO()} onChange={(e) => set("date", e.target.value)} aria-invalid={!!errors.date} />
@@ -229,7 +229,7 @@ export function TradeForm({ journal, initial, onSaved }: { journal: Journal; ini
       <Group header="Note">
         <textarea
           aria-label="Note"
-          className="block min-h-24 w-full resize-y bg-transparent px-4 py-3 text-[15px] outline-none placeholder:text-subtle"
+          className="block min-h-24 w-full resize-none bg-transparent px-4 py-3 text-[15px] outline-none placeholder:text-subtle"
           value={d.notes}
           onChange={(e) => set("notes", e.target.value)}
           placeholder="Motivo d'ingresso, gestione, errori"

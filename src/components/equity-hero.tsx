@@ -70,7 +70,7 @@ export function EquityHero({ curve, capital, currency }: { curve: Point[]; capit
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <p className="text-[13px] font-semibold text-muted">Equity</p>
-          <p className="num mt-1 text-[40px] font-bold leading-[1.05] tracking-[-0.02em] md:text-[48px]" aria-live="polite">
+          <p className="mt-1 text-[40px] font-bold leading-[1.05] tracking-[-0.02em] [font-variant-numeric:proportional-nums] md:text-[48px]" aria-live="polite">
             {money(shown.equity, currency)}
           </p>
           <p className="mt-1.5 text-[17px] font-semibold">
@@ -100,7 +100,7 @@ export function EquityHero({ curve, capital, currency }: { curve: Point[]; capit
             </defs>
             <CartesianGrid stroke="var(--t-grid)" strokeWidth={0.5} vertical={false} />
             <XAxis dataKey="index" {...AXIS} minTickGap={56} tickFormatter={(i) => { const p = points.find((x) => x.index === i); return p ? dayLabel(p.date) : ""; }} />
-            <YAxis orientation="right" domain={[min - pad, max + pad]} tickCount={4} width={56} {...AXIS} tickFormatter={(v) => Number(v).toLocaleString("it-IT", { notation: "compact", maximumFractionDigits: 1 })} />
+            <YAxis orientation="right" domain={[min - pad, max + pad]} ticks={[min + (max - min) / 3, min + ((max - min) * 2) / 3, max].map((v) => Math.round(v))} width={56} {...AXIS} tickFormatter={(v) => Number(v).toLocaleString("it-IT", { notation: "compact", maximumFractionDigits: 1 })} />
             <ReferenceLine y={base} stroke="var(--t-subtle)" strokeWidth={1} label={{ value: range === "ALL" ? "Inizio" : "Base", position: "insideBottomRight", fill: "var(--t-muted)", fontSize: 11 }} />
             <Tooltip content={() => null} cursor={{ stroke: "var(--t-subtle)", strokeWidth: 1 }} isAnimationActive={false} />
             <Area

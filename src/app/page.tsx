@@ -68,15 +68,20 @@ function Dashboard({ journal }: { journal: Journal }) {
       <PageHeader
         title="Dashboard"
         actions={
-          <Button variant="primary" size="sm" onClick={() => setAdding(true)} title="Nuovo trade (⌘N)">
+          <Button variant="primary" onClick={() => setAdding(true)} title="Nuovo trade (⌘N)" aria-label="Nuovo trade" className="max-md:h-9 max-md:w-9 max-md:rounded-full max-md:px-0">
             <Plus size={16} strokeWidth={2.25} />
-            Nuovo trade
+            <span className="hidden md:inline">Nuovo trade</span>
           </Button>
         }
       />
 
-      <Sheet open={adding} onClose={() => setAdding(false)} title="Nuovo trade">
-        <TradeForm journal={journal} onSaved={() => setAdding(false)} />
+      <Sheet
+        open={adding}
+        onClose={() => setAdding(false)}
+        title="Nuovo trade"
+        action={<button type="submit" form="sheet-trade" className="text-[17px] font-semibold active:opacity-60">Aggiungi</button>}
+      >
+        <TradeForm id="sheet-trade" journal={journal} onSaved={() => setAdding(false)} />
       </Sheet>
 
       {lastImport && (
@@ -116,7 +121,7 @@ function Dashboard({ journal }: { journal: Journal }) {
       </div>
 
       <div className="mt-8 grid gap-3 lg:grid-cols-3">
-        <Card className="min-w-0 lg:col-span-2">
+        <Card className="min-w-0 self-start lg:col-span-2">
           <CardTitle aside={<Link href="/journal" className="active:opacity-60">Mostra tutto</Link>}>Ultimi trade</CardTitle>
           {recent.length ? <TradeList trades={recent} currency={cur} compact flagged={flagged} /> : <Empty title="Il journal è vuoto" />}
         </Card>

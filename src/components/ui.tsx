@@ -6,12 +6,12 @@ import type { CheckStatus } from "@/lib/cot/verify";
 /** Titolo grande (large title), sottotitolo di una riga, azioni della toolbar allineate sulla stessa linea. */
 export function PageHeader({ title, description, actions }: { title: string; description?: ReactNode; actions?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div className="mb-6 flex items-start justify-between gap-3">
       <div className="min-w-0">
         <h1 className="text-[34px] font-bold leading-[41px] tracking-[0.011em] md:text-[28px] md:leading-[34px]">{title}</h1>
         {description && <p className="mt-1.5 max-w-[68ch] text-[15px] text-muted">{description}</p>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {actions && <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 pt-1 md:pt-0.5">{actions}</div>}
     </div>
   );
 }
@@ -43,7 +43,7 @@ export function Stat({ label, value, unit, hint, valueClass = "" }: { label: str
         {value}
         {unit && <span className="ml-1 text-[17px] font-semibold text-muted">{unit}</span>}
       </p>
-      {hint && <p className="mt-0.5 truncate text-[13px] text-muted">{hint}</p>}
+      {hint && <p className="mt-0.5 line-clamp-2 text-[13px] text-muted">{hint}</p>}
     </div>
   );
 }
@@ -69,11 +69,11 @@ const sizes: Record<Size, string> = {
 };
 const btn = "inline-flex items-center justify-center gap-1.5 font-medium transition-[opacity,background-color] duration-150 disabled:opacity-35";
 
-export function Button({ variant = "ghost", size = "md", className = "", ...rest }: ComponentProps<"button"> & { variant?: Variant; size?: Size }) {
+export function Button({ variant = "ghost", size = "sm", className = "", ...rest }: ComponentProps<"button"> & { variant?: Variant; size?: Size }) {
   return <button className={`${btn} ${sizes[size]} ${variants[variant]} ${className}`} {...rest} />;
 }
 
-export function ButtonLink({ variant = "ghost", size = "md", className = "", ...rest }: ComponentProps<typeof Link> & { variant?: Variant; size?: Size }) {
+export function ButtonLink({ variant = "ghost", size = "sm", className = "", ...rest }: ComponentProps<typeof Link> & { variant?: Variant; size?: Size }) {
   return <Link className={`${btn} ${sizes[size]} ${variants[variant]} ${className}`} {...rest} />;
 }
 

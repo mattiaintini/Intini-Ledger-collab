@@ -62,7 +62,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <nav className="flex flex-col gap-4">
           {SECTIONS.map((sec) => (
             <div key={sec}>
-              <p className="mb-1 px-2 text-[11px] font-semibold text-subtle">{sec}</p>
+              <p className="mb-1 px-2 text-[11px] font-semibold text-muted">{sec}</p>
               <div className="flex flex-col gap-px">
                 {NAV.filter((n) => n.section === sec).map(({ href, label, icon: Icon }) => {
                   const active = isActive(path, href);
@@ -86,16 +86,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="min-w-0 flex-1">
-        {/* iPhone: barra in materiale con logo e blocco */}
-        <header className="material sticky top-0 z-20 flex h-11 items-center justify-between border-b-[0.5px] border-line px-4 pt-[env(safe-area-inset-top)] md:hidden">
-          <Link href="/" className="flex items-center gap-2">
-            <Logo size={24} />
-            <span className="text-[15px] font-semibold">Journal Suite</span>
-          </Link>
-          <LockButton />
-        </header>
-
-        <main className="px-4 pb-[calc(49px+env(safe-area-inset-bottom)+24px)] pt-5 md:px-10 md:pb-16 md:pt-9">
+        <main className="px-4 pb-[calc(49px+env(safe-area-inset-bottom)+24px)] pt-[calc(env(safe-area-inset-top)+16px)] md:px-10 md:pb-16 md:pt-9">
           <div className="mx-auto max-w-[1200px]">{children}</div>
         </main>
       </div>

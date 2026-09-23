@@ -150,7 +150,8 @@ body {
   box-shadow: 0 0 0 1.5px var(--color-alert);
 }
 .field::placeholder {
-  color: var(--color-subtle);
+  color: var(--color-muted);
+  opacity: 0.7;
 }
 /* iPhone: sotto i 16px Safari ingrandisce la pagina al focus */
 @media (max-width: 767px) {
@@ -204,7 +205,7 @@ dialog.sheet[open] {
   font-size: 15px;
   color: var(--color-fg);
 }
-.row-input::placeholder { color: var(--color-subtle); }
+.row-input::placeholder { color: var(--color-muted); opacity: 0.7; }
 .row-input[aria-invalid="true"] { color: var(--color-alert); }
 input[type="date"].row-input, input[type="time"].row-input { width: auto; flex: none; }
 input[type="date"].row-input::-webkit-date-and-time-value, input[type="time"].row-input::-webkit-date-and-time-value { text-align: right; }

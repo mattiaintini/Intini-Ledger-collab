@@ -41,7 +41,7 @@ export function AppearanceCard() {
 const strong = (p: string) => p.length >= 8 && /[A-Z]/.test(p) && /[^A-Za-z0-9]/.test(p);
 
 export function SecurityCard() {
-  const { hasPassword, setPassword, changePassword, removePassword } = useJournal();
+  const { hasPassword, setPassword, changePassword, removePassword, lock } = useJournal();
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [old, setOld] = useState("");
@@ -123,6 +123,7 @@ export function SecurityCard() {
             {pwRow("Nuova password", pw, setPw, "new-password")}
             <button type="submit" disabled={busy || !old} className="flex min-h-11 w-full items-center px-4 text-[15px] font-semibold active:bg-surface-3 disabled:opacity-40">Cambia password</button>
             <button type="button" disabled={busy || !old} onClick={remove} className="flex min-h-11 w-full items-center px-4 text-[15px] text-alert active:bg-surface-3 disabled:opacity-40">Disattiva cifratura</button>
+            <button type="button" onClick={lock} className="flex min-h-11 w-full items-center px-4 text-[15px] active:bg-surface-3">Blocca ora</button>
           </Group>
         </form>
       )}

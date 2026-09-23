@@ -4,9 +4,10 @@ import { useMemo } from "react";
 import { WithJournal } from "@/components/onboarding";
 import { PnlBars } from "@/components/charts";
 import { Timer } from "lucide-react";
+import { compactPnl } from "@/components/month-grid";
 import { Card, CardTitle, Empty, PageHeader, Stat } from "@/components/ui";
 import { computeStats, enrich, type Breakdown } from "@/lib/journal/stats";
-import { SESSION_LABEL, TYPE_LABEL, type Currency, type Journal, type Session, type TradeType } from "@/lib/journal/types";
+import { SESSION_LABEL, SESSION_SHORT, TYPE_LABEL, type Currency, type Journal, type Session, type TradeType } from "@/lib/journal/types";
 import { money, num, pct, tone } from "@/lib/format";
 
 function BreakdownTable({ title, rows, currency, label = (k) => k }: { title: string; rows: Breakdown[]; currency: Currency; label?: (k: string) => string }) {
@@ -52,12 +53,13 @@ function Heatmap({ trades, capital, currency }: { trades: Journal["trades"]; cap
   }
   const max = Math.max(1, ...[...cells.values()].map((c) => Math.abs(c.pnl)));
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[420px] border-separate border-spacing-[3px] text-[13px]">
+    <div>
+      <table className="w-full table-fixed border-separate border-spacing-[3px] text-[13px]">
+        <colgroup><col className="w-11 md:w-14" /><col /><col /><col /></colgroup>
         <thead>
           <tr className="text-subtle">
             <th />
-            {SESS.map((s) => <th key={s} className="pb-1 text-[13px] font-medium text-muted">{SESSION_LABEL[s]}</th>)}
+            {SESS.map((s) => <th key={s} className="truncate pb-1 text-[13px] font-medium text-muted">{SESSION_SHORT[s]}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -74,7 +76,14 @@ function Heatmap({ trades, capital, currency }: { trades: Journal["trades"]; cap
                     className="num h-9 rounded-[6px] text-center text-[13px]"
                     style={c && c.pnl > 0 ? { background: `color-mix(in srgb, var(--t-fg) ${Math.round(8 + a * 72)}%, transparent)`, color: a > 0.5 ? "var(--t-bg)" : "var(--t-fg)", fontWeight: 600 } : { background: "var(--t-surface-2)" }}
                   >
-                    {c ? <span className={c.pnl < 0 ? "text-muted" : ""}>{money(c.pnl, currency, { sign: true })}</span> : <span className="text-subtle">·</span>}
+                    {c ? (
+                      <span className={c.pnl < 0 ? "text-muted" : ""}>
+                        <span className="hidden sm:inline">{money(c.pnl, currency, { sign: true })}</span>
+                        <span className="sm:hidden">{compactPnl(c.pnl)}</span>
+                      </span>
+                    ) : (
+                      <span className="text-subtle">·</span>
+                    )}
                   </td>
                 );
               })}

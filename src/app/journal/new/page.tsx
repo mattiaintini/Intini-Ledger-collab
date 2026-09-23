@@ -1,23 +1,21 @@
 "use client";
 
+import { ChevronLeft } from "lucide-react";
 import { WithJournal } from "@/components/onboarding";
 import { TradeForm } from "@/components/trade-form";
-import { ButtonLink, Card, PageHeader } from "@/components/ui";
+import { ButtonLink, PageHeader } from "@/components/ui";
 
 export default function Page() {
   return (
     <WithJournal>
       {(j) => (
-        <>
-          <PageHeader
-            title="New trade"
-            description="Il P&L si calcola dal piano (capitale x rischio x RR). Se lo modifichi e si discosta di oltre il 25% ti viene chiesta conferma."
-            actions={<ButtonLink href="/journal">Journal</ButtonLink>}
-          />
-          <Card className="max-w-2xl">
-            <TradeForm journal={j} />
-          </Card>
-        </>
+        <div className="max-w-2xl">
+          <ButtonLink href="/journal" variant="plain" className="-ml-2 mb-2 text-[15px]">
+            <ChevronLeft size={18} /> Journal
+          </ButtonLink>
+          <PageHeader title="New trade" description="Il P&L si calcola dal piano: se lo correggi oltre il 25% ti viene chiesta conferma." />
+          <TradeForm journal={j} />
+        </div>
       )}
     </WithJournal>
   );

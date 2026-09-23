@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* Token dal brand kit mattiaintini.com: dark-first, accento unico clay, bordi a filo. */
+@theme {
+  --color-bg: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-2: #141416;
+  --color-surface-3: #1d1d1f;
+  --color-fg: #ffffff;
+  --color-muted: #a1a1aa;
+  --color-subtle: #71717a;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-line-strong: rgba(255, 255, 255, 0.16);
+  --color-accent: #d97757;
+  --color-accent-hover: #c45d3a;
+  /* Colori semantici solo per numeri di P&L e stati di verifica, mai per la UI. */
+  --color-pos: #5bc08a;
+  --color-neg: #ef5350;
+  --color-warn: #e0b04a;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-ui: 10px;
+  --radius-card: 16px;
+}
+
+html {
+  color-scheme: dark;
+  background: var(--color-bg);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Campi form coerenti con il brand */
+.field {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-ui);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-fg);
+  outline: none;
+  transition: border-color 150ms;
+}
+.field:focus {
+  border-color: var(--color-accent);
+}
+.field[aria-invalid="true"] {
+  border-color: var(--color-neg);
+}
+.field::placeholder {
+  color: var(--color-subtle);
+}
+input[type="date"].field::-webkit-calendar-picker-indicator,
+input[type="time"].field::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+}
+select.field {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  padding-right: 1.625rem;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-3) transparent;
+}

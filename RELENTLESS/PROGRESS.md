@@ -12,3 +12,4 @@
 | 7 | Rilievi verificatore (COT) | gate 0, 73 test | copertura per anno, archivio non pubblicato, conflitto settimanale/annuale, shutdown = avviso |
 | 8 | G2 e2e nel repo | e2e 59/59 (x2) | import v8, 12 pagine x 2 viewport, validazione form, etichette esatte, correzione in place |
 | 9 | G8 proponente UX (12 proposte) | gate 0, 80 test, e2e 77/77 | reimport con conferma + backup, position size su equity, valuta del pip, migliaia a 4 cifre, calendario mobile, righe incoerenti marcate, news da ForexFactory, assi grafici, label EN, accento ridotto, mercati del journal in testa, tabella settimane compatta |
+| 10 | Chiusura | gate 0, 80 test, e2e 77/77 (news con eventi reali), verify:cot 2041/2041 | tutti i goal verificati |

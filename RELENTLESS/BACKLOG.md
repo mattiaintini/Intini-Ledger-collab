@@ -6,5 +6,5 @@
 4. [x] G7 resilienza COT con fetch simulato
 5. [x] G4 modifica trade in place
 6. [x] G2 e2e nel repo (dipende da 3 e 5)
-7. [ ] G3 verify:cot live finale
-8. [ ] G8 verificatore indipendente (numeri) + proponente UX, correzioni con regressione
+7. [x] G3 verify:cot live finale
+8. [x] G8 verificatore indipendente (numeri) + proponente UX, correzioni con regressione

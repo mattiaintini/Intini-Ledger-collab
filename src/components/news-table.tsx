@@ -66,6 +66,15 @@ export function NewsTable({ events }: { events: MacroEvent[] }) {
         </div>
       </div>
 
+      {days.length > 0 && (
+        <div className="mb-2 hidden grid-cols-[4rem_3.5rem_1fr_7rem_7rem] gap-x-3 px-3 text-xs text-subtle md:grid">
+          <span>Ora</span>
+          <span>Valuta</span>
+          <span>Evento</span>
+          <span className="text-right">Previsto</span>
+          <span className="text-right">Precedente</span>
+        </div>
+      )}
       {days.length === 0 && <p className="py-10 text-center text-sm text-muted">Nessun evento con questi filtri.</p>}
       <div className="flex flex-col gap-6">
         {days.map(([day, evs]) => (

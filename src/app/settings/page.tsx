@@ -54,13 +54,14 @@ function DataCheck({ journal }: { journal: Journal }) {
   const issues = useMemo(() => auditJournal(journal), [journal]);
   const errors = issues.filter((i) => i.level === "error");
   const warnings = issues.filter((i) => i.level === "warning");
+  const errorTrades = new Set(errors.map((i) => i.tradeId)).size;
   const status = errors.length ? "fail" : warnings.length ? "warn" : "pass";
   return (
     <Card id="controllo-dati">
       <CardTitle aside={<StatusBadge status={status} label={status === "pass" ? "Nessun problema" : undefined} />}>Controllo dati del journal</CardTitle>
       <p className="text-sm text-muted">
         Ogni trade ricontrollato con le regole dell&apos;inserimento: date, coerenza tra esito e P&amp;L, scostamento dal piano oltre il 25%, rischio oltre il limite, doppioni.{" "}
-        {journal.trades.length} trade, {errors.length} errori, {warnings.length} avvisi.
+        {journal.trades.length} trade: {errors.length} errori su {errorTrades} trade, {warnings.length} avvisi.
       </p>
       {issues.length > 0 && (
         <ul className="mt-4 max-h-96 divide-y divide-line overflow-y-auto scrollbar-thin text-sm">

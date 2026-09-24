@@ -226,3 +226,103 @@ input[type="date"].row-input::-webkit-date-and-time-value, input[type="time"].ro
   background-repeat: no-repeat;
   background-position: right 0.5rem center;
 }
+
+/* ---------------------------------------------------------------------------------------------
+   Schermata d'ingresso (primo avvio e sblocco), stessa scena e tipografia dell'ingresso di Backtesta.
+   È l'unico punto dell'app con l'accento a gradiente: il resto resta in scala di grigi.
+   --------------------------------------------------------------------------------------------- */
+.entry {
+  --e-accent: #22e8cf;
+  --e-accent-2: #7c3aed;
+  --e-fg-3: #6e6e73;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: #000;
+  color: #fff;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+}
+.entry-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 6;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: calc(env(safe-area-inset-top) + 22px) max(24px, 4vw) 22px;
+}
+.entry-brand { font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.entry-brand span { color: var(--e-accent); }
+.entry-pill-ghost {
+  display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(22, 22, 24, 0.6);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); font-size: 14px; font-weight: 500;
+}
+.entry-hero { position: relative; min-height: 100svh; display: grid; place-items: center; overflow: hidden; }
+.entry-field { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+/* il velo scurisce la colonna centrale del titolo, i due lati restano leggibili */
+.entry-hero::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    linear-gradient(to right, transparent 0%, rgba(0,0,0,.42) 22%, rgba(0,0,0,.8) 40%, rgba(0,0,0,.8) 60%, rgba(0,0,0,.42) 78%, transparent 100%),
+    linear-gradient(to bottom, rgba(0,0,0,.72) 0%, rgba(0,0,0,.2) 16%, rgba(0,0,0,.2) 76%, rgba(0,0,0,.8) 100%);
+}
+.entry-inner { position: relative; z-index: 2; width: min(1240px, 92vw); margin: 0 auto; padding: 12vh 0 8vh; text-align: center; }
+.entry-inner::before {
+  content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 128%; height: 180%; z-index: -1; pointer-events: none;
+  background: radial-gradient(42% 38% at 50% 48%, rgba(0,0,0,.9) 0%, rgba(0,0,0,.66) 46%, rgba(0,0,0,.24) 70%, transparent 84%);
+}
+.entry h1 {
+  font-family: var(--font-display); font-weight: 700; font-size: clamp(42px, 7.2vw, 108px); line-height: 0.98; letter-spacing: -0.05em;
+  background: linear-gradient(175deg, #fff 52%, rgba(255,255,255,.55)); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.entry h1 em {
+  font-style: normal; color: transparent;
+  background: linear-gradient(120deg, var(--e-accent), #9be8ff 55%, var(--e-accent-2)); -webkit-background-clip: text; background-clip: text;
+}
+/* le cifre sono lo strumento di misura della pagina: famiglia dedicata, larghezza fissa, filetti */
+.entry-stats { display: flex; justify-content: center; flex-wrap: wrap; margin: clamp(30px, 4.6vh, 52px) 0 0; }
+.entry-stats div {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 2px clamp(14px, 2.2vw, 30px); border-left: 1px solid rgba(255,255,255,.1);
+}
+.entry-stats div:first-child { border-left: 0; }
+.entry-stats dt {
+  font-family: var(--font-num); font-size: clamp(30px, 3.5vw, 54px); font-weight: 600; font-stretch: 112%;
+  letter-spacing: -0.022em; line-height: 0.92; font-variant-numeric: tabular-nums lining-nums;
+  color: #fff; text-shadow: 0 0 34px rgba(255,255,255,.14);
+}
+.entry-stats dd { margin: 0; color: var(--e-fg-3); font-size: 12.5px; white-space: nowrap; line-height: 1.4; }
+.entry-cta { margin-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.entry-primary {
+  min-height: 52px; padding: 0 32px; border-radius: 999px; background: #fff; color: #000; font-size: 16px; font-weight: 600;
+  box-shadow: 0 10px 46px rgba(255,255,255,.16); transition: background 120ms var(--ease-smooth);
+}
+.entry-primary:hover { background: #e8e8ed; }
+.entry-primary:disabled { background: #141416; color: var(--e-fg-3); box-shadow: none; }
+.entry-link { color: rgba(255,255,255,.72); font-size: 14px; }
+.entry-link:hover { color: #fff; }
+.entry-note { color: var(--e-fg-3); font-size: 13px; min-height: 18px; max-width: 46ch; }
+.entry-note.err { color: #ff453a; }
+/* campi in vetro, centrati come il resto della scena */
+.entry-input {
+  width: min(360px, 84vw); height: 52px; border-radius: 999px; text-align: center; font-size: 16px;
+  background: rgba(22,22,24,.6); border: 1px solid rgba(255,255,255,.14); color: #fff; outline: none;
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.entry-input::placeholder { color: var(--e-fg-3); }
+.entry-input:focus { border-color: rgba(255,255,255,.4); }
+.entry-input[aria-invalid="true"] { border-color: #ff453a; }
+.entry-form { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.entry-row { display: flex; gap: 10px; }
+.entry-row .entry-input { width: min(175px, 41vw); }
+.entry :focus-visible { outline: 2px solid var(--e-accent); outline-offset: 2px; }
+.entry-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 720px) {
+  .entry-stats { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(18px, 3.4vh, 28px) 10px; }
+  .entry-stats div { border-left: 0; padding: 0; }
+  .entry-hero::after {
+    background:
+      linear-gradient(to right, rgba(0,0,0,.34) 0%, rgba(0,0,0,.84) 18%, rgba(0,0,0,.84) 82%, rgba(0,0,0,.34) 100%),
+      linear-gradient(to bottom, rgba(0,0,0,.7) 0%, rgba(0,0,0,.28) 18%, rgba(0,0,0,.28) 74%, rgba(0,0,0,.82) 100%);
+  }
+}
